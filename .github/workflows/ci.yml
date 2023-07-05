@@ -23,4 +23,4 @@ jobs:
         version: v0.7.8
     - uses: actions/checkout@v2
     - name: Run build
-      run: earthly --remote-cache=ghcr.io/Fristi/project-mycelium:cache +build
+      run: earthly --ci --push --remote-cache=ghcr.io/Fristi/project-mycelium:cache +build
