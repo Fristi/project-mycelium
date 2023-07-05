@@ -2,10 +2,10 @@
 # Makes use of the well tested scripted install from the Rust ESP comunity:
 # https://github.com/esp-rs/rust-build
 VERSION 0.7
-FROM debian:stable-slim
+FROM debian:stable-slim@sha256:9071e1878844a004088f3c3f4db1dc54421dac00f15437424533c91c81108469
 
 linux-setup:
-  RUN apt update && apt-get install -y git curl gcc wget flex bison gperf python3 python3-pip python3-virtualenv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 unzip
+  RUN apt update && apt-get install -y git curl gcc cmake wget flex bison gperf python3 python3-pip python3-virtualenv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 unzip
 
 esp-rust-setup:
   FROM +linux-setup
