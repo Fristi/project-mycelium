@@ -1,0 +1,11 @@
+{
+  "appId": "co.mycelium",
+  "appName": "frontend",
+  "bundledWebRuntime": false,
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
