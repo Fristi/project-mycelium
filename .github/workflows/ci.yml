@@ -12,9 +12,15 @@ jobs:
     env:
       FORCE_COLOR: 1
     steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - uses: earthly/actions-setup@v1
       with:
         version: v0.7.8
     - uses: actions/checkout@v2
     - name: Run build
-      run: earthly +build
+      run: earthly --remote-cache=ghcr.io/Fristi/project-mycelium:cache +build

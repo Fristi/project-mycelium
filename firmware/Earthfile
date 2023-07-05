@@ -24,6 +24,8 @@ build:
 
   COPY +esp-rust-setup/espressif /root/.espressif
 
+  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang
+
   # These vaules are emited after installing the toolchain.
   # There is no way yet to get this progamaticly, thus this will need updating at times when build tooling updates.
   ENV PATH="/root/.cargo/bin:/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-$TARGETARCH-unknown-linux-gnu/bin/:$PATH"
