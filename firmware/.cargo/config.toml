@@ -1,0 +1,19 @@
+[build]
+target = "xtensa-esp32-espidf"
+
+[target.xtensa-esp32-espidf]
+linker = "ldproxy"
+runner = "wokwi-server --chip esp32"
+
+rustflags = ["-C", "default-linker-libraries"]
+
+[unstable]
+build-std = ["std", "panic_abort"]
+
+[env]
+# Note: these variables are not used when using pio builder (`cargo build --features pio`)
+ESP_IDF_VERSION = "v4.4.4"
+
+
+[net]
+git-fetch-with-cli = true

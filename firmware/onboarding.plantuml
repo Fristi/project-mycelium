@@ -1,0 +1,14 @@
+@startuml
+
+
+[*] --> AwaitingInternetConfiguration
+AwaitingInternetConfiguration --> ProvisioningInternet
+ProvisioningInternet --> AwaitingInternetConfiguration
+ProvisioningInternet --> AwaitingMqttConfiguration
+AwaitingMqttConfiguration --> ProvisioningMqtt
+AwaitingMqttConfiguration --> AwaitingInternetConfiguration
+ProvisioningMqtt --> AwaitingInternetConfiguration
+ProvisioningMqtt --> Provisioned
+Provisioned --> [*]
+
+@enduml

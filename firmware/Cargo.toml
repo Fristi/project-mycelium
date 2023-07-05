@@ -1,0 +1,38 @@
+[package]
+name = "esp-idf-v4-test"
+version = "0.1.0"
+authors = ["Fristi <mark@vectos.net>"]
+edition = "2021"
+resolver = "2"
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[features]
+default = ["std", "esp-idf-sys/native"]
+
+std = ["esp-idf-sys/std", "esp-idf-sys/binstart", "embedded-svc/std", "esp-idf-svc/std"]
+
+[package.metadata.espflash]
+partition_table = "partitions.csv" # Supports CSV and binary formats
+
+[dependencies]
+log = { version = "0.4.17" }
+esp-idf-sys = { version = "0.31.10" }
+esp-idf-svc = { version = "0.43.4" }
+esp-idf-hal = { version = "0.39.4" }
+embedded-svc = { version = "0.23"  }
+bluedroid = "0.3.7"
+heapless = "0.7.16"
+num_enum = "0.6.1"
+serde = "1.0.164"
+rmp-serde = "1.1.1"
+serde-json-core = "0.5.0"
+
+
+[build-dependencies]
+embuild = "0.31.2"
