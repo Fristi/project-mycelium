@@ -5,3 +5,7 @@
 */.embuild
 *.iml
 */artifacts
+*/node_modules/
+*.map
+*/dist/
+*/build/
