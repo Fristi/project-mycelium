@@ -14,5 +14,6 @@ build:
 
 docker:
     COPY +build/bin build/bin
+    ARG VERSION
     ENTRYPOINT ["java","-cp","build/bin/scala-example-assembly-1.0.jar","Main"]
-    SAVE IMAGE --push earthly/examples:scala
+    SAVE IMAGE --push ghcr.io/fristi/project-mycelium-backend:$VERSION

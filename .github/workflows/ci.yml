@@ -20,4 +20,4 @@ jobs:
     - name: Docker login # to avoid dockerhub rate-limiting
       run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Run build
-      run: earthly --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache +build
+      run: earthly --VERSION=$(git rev-parse --short HEAD) --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache +docker

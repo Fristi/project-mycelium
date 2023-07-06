@@ -38,7 +38,6 @@ deps:
 
   RUN echo $LIBCLANG_PATH
   RUN ls $LIBCLANG_PATH
-  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang/lib
   RUN echo $PATH
 
   COPY --dir .cargo ./
