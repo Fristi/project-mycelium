@@ -15,5 +15,6 @@ build:
 docker:
     COPY +build/bin build/bin
     ARG EARTHLY_GIT_SHORT_HASH
-    ENTRYPOINT ["java","-cp","build/bin/scala-example-assembly-1.0.jar","Main"]
+    FROM eclipse-temurin:17.0.7_7-jre
+    ENTRYPOINT ["java","-cp","build/bin/backend-assembly-1.0.jar","co.mycelium.Main"]
     SAVE IMAGE --push ghcr.io/fristi/project-mycelium-backend:$EARTHLY_GIT_SHORT_HASH
