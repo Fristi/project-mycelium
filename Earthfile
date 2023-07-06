@@ -6,4 +6,5 @@ build:
     BUILD ./backend/+build
 
 docker:
-    BUILD ./backend/+docker
+    ARG VERSION
+    BUILD --VERSION=$VERSION ./backend/+docker
