@@ -23,7 +23,6 @@ deps:
   RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/
   RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang
   RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang/lib
-  RUN false
 
   # These vaules are emited after installing the toolchain.
   # There is no way yet to get this progamaticly, thus this will need updating at times when build tooling updates.
