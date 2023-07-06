@@ -14,6 +14,6 @@ build:
 
 docker:
     COPY +build/bin build/bin
-    ARG VERSION
+    ARG EARTHLY_GIT_SHORT_HASH
     ENTRYPOINT ["java","-cp","build/bin/scala-example-assembly-1.0.jar","Main"]
-    SAVE IMAGE --push ghcr.io/fristi/project-mycelium-backend:$VERSION
+    SAVE IMAGE --push ghcr.io/fristi/project-mycelium-backend:$EARTHLY_GIT_SHORT_HASH
