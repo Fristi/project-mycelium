@@ -19,15 +19,25 @@ deps:
   WORKDIR build  
   COPY +esp-rust-setup/espressif /root/.espressif
 
-  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/
-  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/
-  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang
-  RUN ls /root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang/lib
+  ARG TARGETARCH
+
+  RUN echo $TARGETARCH
+
+  IF [ "$TARGETARCH" = amd64 ]
+      ARG ARCH_TRIPLE=x86_64-unknown-linux-gnu
+  ELSE IF [ "$TARGETARCH" = arm64 ]
+      ARG ARCH_TRIPLE=aarch64-unknown-linux-gnu
+  ELSE 
+      RUN false
+  END
 
   # These vaules are emited after installing the toolchain.
   # There is no way yet to get this progamaticly, thus this will need updating at times when build tooling updates.
-  ENV PATH="/root/.cargo/bin:/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/bin/:$PATH"
-  ENV LIBCLANG_PATH="/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-x86_64-unknown-linux-gnu/esp-clang/lib"
+  ENV PATH="/root/.cargo/bin:/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-$ARCH_TRIPLE/bin/:$PATH"
+  ENV LIBCLANG_PATH="/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-$ARCH_TRIPLE/esp-clang/lib"
+
+  RUN echo $LIBCLANG_PATH
+  RUN echo $PATH
 
   COPY --dir .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
