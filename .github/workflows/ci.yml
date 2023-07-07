@@ -20,4 +20,4 @@ jobs:
     - name: Docker login # to avoid dockerhub rate-limiting
       run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Run build
-      run: earthly --secret FLY_API_TOKEN --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache ./backend/+deploy
+      run: earthly --secret FLY_API_TOKEN="${{ secrets.FLY_API_TOKEN }}" --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache ./backend/+deploy
