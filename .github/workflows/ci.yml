@@ -25,6 +25,6 @@ jobs:
     - name: Sleep for 30 seconds ... ghcr is slow
       run: sleep 60s
       shell: bash
-    - run: flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$(git rev-parse --short HEAD)
+    - run: flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$(git rev-parse HEAD)
       env:
         FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
