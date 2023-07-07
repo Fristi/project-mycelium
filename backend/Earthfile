@@ -23,5 +23,4 @@ docker:
 deploy:
     FROM flyio/flyctl
     ARG EARTHLY_GIT_SHORT_HASH
-    RUN sleep 60
     RUN --secret FLY_API_TOKEN flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$EARTHLY_GIT_SHORT_HASH
