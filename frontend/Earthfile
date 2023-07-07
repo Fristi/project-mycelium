@@ -1,8 +1,8 @@
 VERSION 0.7
-FROM node:13.10.1-alpine3.11
+FROM node:18
 
 deps:
-    COPY ./package.json ./
+    COPY ./package*.json ./
     RUN npm install
     # Output these back in case npm install changes them.
     SAVE ARTIFACT package.json AS LOCAL ./app/package.json
@@ -10,6 +10,6 @@ deps:
 build:
     FROM +deps
     COPY --dir ./src ./src
-    COPY vite.config.ts vite.config.ts
+    COPY vite.config.ts tsconfig.* *.config.js index.html ./
     RUN npm run build
     SAVE ARTIFACT dist AS LOCAL ./dist
