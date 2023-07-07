@@ -12,3 +12,4 @@ build:
     COPY --dir ./src ./src
     COPY vite.config.ts vite.config.ts
     RUN npm run build
+    SAVE ARTIFACT dist AS LOCAL ./dist
