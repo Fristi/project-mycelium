@@ -20,4 +20,11 @@ jobs:
     - name: Docker login # to avoid dockerhub rate-limiting
       run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Run build
-      run: earthly --secret FLY_API_TOKEN="${{ secrets.FLY_API_TOKEN }}" --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache ./backend/+deploy
+      run: earthly --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache ./backend/+docker
+    - uses: superfly/flyctl-actions/setup-flyctl@master
+    - name: Sleep for 30 seconds ... ghcr is slow
+      run: sleep 60s
+      shell: bash
+    - run: flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$(git rev-parse --short HEAD)
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
