@@ -21,3 +21,7 @@ jobs:
       run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Run build
       run: earthly --ci --push --remote-cache=ghcr.io/fristi/project-mycelium:cache ./backend/+docker
+    - uses: superfly/flyctl-actions/setup-flyctl@master
+    - run: flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$(git rev-parse --short HEAD)
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
