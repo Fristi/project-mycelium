@@ -19,3 +19,9 @@ docker:
     ARG EARTHLY_GIT_SHORT_HASH
     ENTRYPOINT ["java","-cp","build/bin/backend-assembly-1.0.jar","co.mycelium.Main"]
     SAVE IMAGE --push ghcr.io/fristi/project-mycelium-backend:$EARTHLY_GIT_SHORT_HASH
+
+deploy:
+    FROM flyio/flyctl
+    ARG EARTHLY_GIT_SHORT_HASH
+    RUN sleep 60
+    RUN --secret FLY_API_TOKEN flyctl deploy --image ghcr.io/fristi/project-mycelium-backend:$EARTHLY_GIT_SHORT_HASH
