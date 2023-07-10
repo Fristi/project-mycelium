@@ -32,23 +32,23 @@ object Stations extends TapirSchemas {
     val all = Set(list, add, update, delete, checkIn, watered)
   }
 
-  def routes(repositories: Repositories[IO]): HttpRoutes[IO] = {
+  def routes(repos: Repositories[IO]): HttpRoutes[IO] = {
 
 
-    val list = endpoints.list.serverLogic(at => _ => repositories.stations.listByUserId(at.sub).map(Right(_)))
+    val list = endpoints.list.serverLogic(at => _ => repos.stations.listByUserId(at.sub).map(Right(_)))
     val add = endpoints.add.serverLogic { at => insert =>
       val id = UUID.randomUUID()
       val created = Instant.now()
 
-      repositories.stations.insert(insert.toStation(id, created, at.sub), created).as(Right(()))
+      repos.stations.insert(insert.toStation(id, created, at.sub), created).as(Right(()))
     }
 
-    val delete = endpoints.delete.serverLogic(at => id => repositories.stations.delete(id).as(Right(())))
+    val delete = endpoints.delete.serverLogic(at => id => repos.stations.delete(id).as(Right(())))
 
     val checkin = endpoints.checkIn.serverLogic { at => {
       case (id, readings) =>
           for {
-            stationOpt <- repositories.stations.findById(id)
+            stationOpt <- repos.stations.findById(id)
             watering <- stationOpt match {
               case Some(station) =>
                 station.wateringSchedule match {
@@ -65,19 +65,19 @@ object Stations extends TapirSchemas {
     val watered = endpoints.watered.serverLogic { at => {
       case (id, request) =>
           request.watering match {
-            case Some(watered) => repositories.stationLog.insert(StationLog(id, Instant.now(), StationEvent.Watered(watered))).as(Right(()))
+            case Some(watered) => repos.stationLog.insert(StationLog(id, Instant.now(), StationEvent.Watered(watered))).as(Right(()))
             case None => IO.unit.as(Right(()))
           }
       }
     }
 
-    val log = endpoints.log.serverLogic { at => { case (id, page) =>
-      repositories.stationLog.listByStation(id, page.getOrElse(0L) * 30).map(Right(_))
+    val log = endpoints.log.serverLogic { at => {
+      case (id, page) =>
+        repos.stationLog.listByStation(id, page.getOrElse(0L) * 30).map(Right(_))
       }
     }
 
     Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin))
-
   }
 }
 

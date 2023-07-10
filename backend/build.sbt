@@ -20,7 +20,8 @@ libraryDependencies ++= Seq(
     "ch.qos.logback" % "logback-classic" % "1.4.8",
     "com.github.jwt-scala" %% "jwt-core" % "9.4.0",
     "com.github.jwt-scala" %% "jwt-circe" % "9.4.0",
-    "com.auth0" % "jwks-rsa" % "0.22.0"
+    "com.auth0" % "jwks-rsa" % "0.22.0",
+    "com.github.fs2-blobstore" %% "s3" % "0.9.9"
 )
 
 Compile / scalacOptions ++= {
@@ -28,4 +29,9 @@ Compile / scalacOptions ++= {
         case Some((2, n)) if n >= 13 => "-Ymacro-annotations" :: Nil
         case _ => Nil
     }
+}
+
+assembly / assemblyMergeStrategy := {
+    case PathList("META-INF", _*) => MergeStrategy.discard
+    case _                        => MergeStrategy.first
 }
