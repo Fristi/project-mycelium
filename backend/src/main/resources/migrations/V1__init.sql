@@ -6,7 +6,7 @@ create table stations (
     name TEXT not null,
     description TEXT not null,
     location TEXT not null,
-    watering_schedule VARCHAR not null,
+    watering_schedule JSON not null,
     user_id TEXT not null,
     created TIMESTAMPTZ not null,
     updated TIMESTAMPTZ
@@ -14,6 +14,6 @@ create table stations (
 
 create table station_log (
     station_id UUID NOT NULL REFERENCES stations (id) ON DELETE CASCADE,
-    occured_on TIMESTAMPTZ NOT NULL,
-    event VARCHAR not null
+    occurred_on TIMESTAMPTZ NOT NULL,
+    event JSON not null
 );

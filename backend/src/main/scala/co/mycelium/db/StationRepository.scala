@@ -31,10 +31,10 @@ object DoobieStationRepository extends StationRepository[ConnectionIO] {
   }
 
   def listByUserId(userId: String): ConnectionIO[List[Station]] =
-    sql"SELECT * FROM stations where user_id = $userId".query[Station].to[List]
+    sql"SELECT id, mac_addr, name, location, description, watering_schedule, user_id, created, updated FROM stations where user_id = $userId".query[Station].to[List]
 
   def findById(id: UUID): ConnectionIO[Option[Station]] =
-    sql"SELECT * FROM stations where id = $id".query[Station].option
+    sql"SELECT id, mac_addr, name, location, description, watering_schedule, user_id, created, updated FROM stations where id = $id".query[Station].option
 
   def delete(id: UUID): ConnectionIO[Int] =
     sql"DELETE FROM stations WHERE id = $id".update.run

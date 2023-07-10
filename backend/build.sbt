@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "1.6.0",
     "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "1.6.0",
     "org.flywaydb" % "flyway-core" % "9.16.0",
-    "io.circe" %% "circe-generic-extras" % "0.14.3"
+    "io.circe" %% "circe-generic-extras" % "0.14.3",
+    "ch.qos.logback" % "logback-classic" % "1.4.8",
 )
 
 Compile / scalacOptions ++= {

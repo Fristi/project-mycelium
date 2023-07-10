@@ -19,8 +19,8 @@ object StationLogRepository {
 
 object DoobieStationLogRepository extends StationLogRepository[ConnectionIO] {
   override def insert(log: StationLog): ConnectionIO[Int] =
-    sql"INSERT INTO station_log (station_id, occured_on, event) VALUES (${log.stationId}, ${log.on}, ${log.event})".update.run
+    sql"INSERT INTO station_log (station_id, occurred_on, event) VALUES (${log.stationId}, ${log.on}, ${log.event})".update.run
 
   override def listByStation(id: UUID, offset: Long): doobie.ConnectionIO[List[StationLog]] =
-    sql"SELECT station_id, occured_on, event FROM station_log WHERE station_id = $id ORDER BY on DESC LIMIT 30 OFFSET $offset".query[StationLog].to[List]
+    sql"SELECT station_id, occurred_on, event FROM station_log WHERE station_id = $id ORDER BY occurred_on DESC LIMIT 30 OFFSET $offset".query[StationLog].to[List]
 }
