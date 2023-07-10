@@ -18,6 +18,9 @@ libraryDependencies ++= Seq(
     "org.flywaydb" % "flyway-core" % "9.16.0",
     "io.circe" %% "circe-generic-extras" % "0.14.3",
     "ch.qos.logback" % "logback-classic" % "1.4.8",
+    "com.github.jwt-scala" %% "jwt-core" % "9.4.0",
+    "com.github.jwt-scala" %% "jwt-circe" % "9.4.0",
+    "com.auth0" % "jwks-rsa" % "0.22.0"
 )
 
 Compile / scalacOptions ++= {

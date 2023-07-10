@@ -34,41 +34,47 @@ object Stations extends TapirSchemas {
 
   def routes(repositories: Repositories[IO]): HttpRoutes[IO] = {
 
-    val userId = "1"
 
-    val list = endpoints.list.serverLogic[IO](_ => repositories.stations.listByUserId(userId).map(Right(_)))
-    val add = endpoints.add.serverLogic[IO] { insert =>
+    val list = endpoints.list.serverLogic(at => _ => repositories.stations.listByUserId(at.sub).map(Right(_)))
+    val add = endpoints.add.serverLogic { at => insert =>
       val id = UUID.randomUUID()
       val created = Instant.now()
 
-      repositories.stations.insert(insert.toStation(id, created, userId), created).as(Right(()))
+      repositories.stations.insert(insert.toStation(id, created, at.sub), created).as(Right(()))
     }
 
-    val delete = endpoints.delete.serverLogic[IO](id => repositories.stations.delete(id).as(Right(())))
+    val delete = endpoints.delete.serverLogic(at => id => repositories.stations.delete(id).as(Right(())))
 
-    val checkin = endpoints.checkIn.serverLogic[IO] { case (id, readings) =>
-      for {
-        stationOpt <- repositories.stations.findById(id)
-        watering <- stationOpt match {
-          case Some(station) =>
-            station.wateringSchedule match {
-              case WateringSchedule.Interval(_, _) => IO(Watering(None))
-              case WateringSchedule.Threshold(belowSoilPf, period) =>
-                if(readings.readings.lastOption.exists(_.soilPf < belowSoilPf)) IO(Watering(Some(period))) else IO(Watering(None))
+    val checkin = endpoints.checkIn.serverLogic { at => {
+      case (id, readings) =>
+          for {
+            stationOpt <- repositories.stations.findById(id)
+            watering <- stationOpt match {
+              case Some(station) =>
+                station.wateringSchedule match {
+                  case WateringSchedule.Interval(_, _) => IO(Watering(None))
+                  case WateringSchedule.Threshold(belowSoilPf, period) =>
+                    if(readings.readings.lastOption.exists(_.soilPf < belowSoilPf)) IO(Watering(Some(period))) else IO(Watering(None))
+                }
+              case None => IO(Watering(None))
             }
-          case None => IO(Watering(None))
-        }
-      } yield Right(watering)
-    }
-
-    val watered = endpoints.watered.serverLogic[IO] { case (id, request) =>
-      request.watering match {
-        case Some(watered) => repositories.stationLog.insert(StationLog(id, Instant.now(), StationEvent.Watered(watered))).as(Right(()))
-        case None => IO.unit.as(Right(()))
+          } yield Right(watering)
       }
     }
 
-    val log = endpoints.log.serverLogic[IO] { case (id, page) => repositories.stationLog.listByStation(id, page.getOrElse(0L) * 30).map(Right(_)) }
+    val watered = endpoints.watered.serverLogic { at => {
+      case (id, request) =>
+          request.watering match {
+            case Some(watered) => repositories.stationLog.insert(StationLog(id, Instant.now(), StationEvent.Watered(watered))).as(Right(()))
+            case None => IO.unit.as(Right(()))
+          }
+      }
+    }
+
+    val log = endpoints.log.serverLogic { at => { case (id, page) =>
+      repositories.stationLog.listByStation(id, page.getOrElse(0L) * 30).map(Right(_))
+      }
+    }
 
     Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin))
 
