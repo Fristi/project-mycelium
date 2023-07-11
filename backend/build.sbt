@@ -22,7 +22,8 @@ libraryDependencies ++= Seq(
     "com.github.jwt-scala" %% "jwt-core" % "9.4.0",
     "com.github.jwt-scala" %% "jwt-circe" % "9.4.0",
     "com.auth0" % "jwks-rsa" % "0.22.0",
-    "com.github.fs2-blobstore" %% "s3" % "0.9.9"
+    "com.github.fs2-blobstore" %% "s3" % "0.9.9",
+    "is.cir" %% "ciris" % "3.2.0"
 )
 
 Compile / scalacOptions ++= {

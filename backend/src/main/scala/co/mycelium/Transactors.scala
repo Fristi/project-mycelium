@@ -15,7 +15,7 @@ object Transactors {
     config.setPoolName("mycelium")
     config.setJdbcUrl(s"jdbc:postgresql://${cfg.host}:${cfg.port}/${cfg.database}")
     config.setUsername(cfg.username)
-    config.setPassword(cfg.password)
+    config.setPassword(cfg.password.value)
     config.setValidationTimeout(1000)
     config.setConnectionTimeout(2000)
     config.setDriverClassName("org.postgresql.Driver")

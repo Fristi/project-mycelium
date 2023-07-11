@@ -73,11 +73,11 @@ object Main extends IOApp {
     .build()
 
 
-  val client: S3AsyncClient = S3AsyncClient
+  def client(blobConfig: S3BlobConfig): S3AsyncClient = S3AsyncClient
     .builder()
     .region(Region.US_EAST_1)
-    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("minio", "miniominio")))
-    .endpointOverride(URI.create("http://127.0.0.1:9000"))
+    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(blobConfig.accessKey, blobConfig.secretKey.value)))
+    .endpointOverride(URI.create(blobConfig.host))
     .overrideConfiguration(overrideConfiguration)
     .httpClient(httpClient)
     .build()
@@ -85,8 +85,9 @@ object Main extends IOApp {
 
   val app: Resource[IO, Server] =
     for {
-      tx <- Transactors.pg[IO](DbConfig("localhost", 5432, "mycelium", "mycelium", "mycelium"))
-      s3 <- Resource.eval(IO.fromOption(S3Store.builder[IO](client).build.toOption)(new Throwable("Wat?")))
+      cfg <- Resource.eval(AppConfig.config.load[IO])
+      tx <- Transactors.pg[IO](cfg.db)
+      s3 <- Resource.eval(IO.fromOption(S3Store.builder[IO](client(cfg.blob)).build.toOption)(new Throwable("Wat?")))
       repos = Repositories.fromTransactor(tx)
       server <- EmberServerBuilder
         .default[IO]
