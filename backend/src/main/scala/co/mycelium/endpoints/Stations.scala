@@ -5,6 +5,7 @@ import co.mycelium.CirceCodecs._
 import co.mycelium.db.Repositories
 import co.mycelium.domain._
 import cron4s.CronExpr
+import cron4s.lib.javatime.javaTemporalInstance
 import org.http4s.HttpRoutes
 import sttp.tapir._
 import sttp.tapir.generic.Configuration
@@ -54,7 +55,15 @@ object Stations extends TapirSchemas {
             watering <- stationOpt match {
               case Some(station) =>
                 station.wateringSchedule match {
-                  case WateringSchedule.Interval(_, _) => IO(Watering(None))
+                  case WateringSchedule.Interval(schedule, period) =>
+                    repos.stationLog.lastTimeWatered(id).flatMap {
+                      case Some(lastTime) => schedule.next(lastTime) match {
+                        case Some(nextTime) if nextTime.isAfter(Instant.now()) => IO(Watering(Some(period)))
+                        case _ => IO(Watering(None))
+                      }
+                      case None => IO(Watering(None))
+                    }
+
                   case WateringSchedule.Threshold(belowSoilPf, period) =>
                     if(measurements.lastOption.exists(_.soilPf < belowSoilPf)) IO(Watering(Some(period))) else IO(Watering(None))
                 }
