@@ -13,8 +13,8 @@ import java.util.UUID
 trait StationRepository[F[_]] {
   def insert(station: Station, on: Instant): F[Int]
   def listByUserId(userId: String): F[List[Station]]
-  def findById(id: UUID): F[Option[Station]]
-  def delete(id: UUID): F[Int]
+  def findById(id: UUID, userId: String): F[Option[Station]]
+  def delete(id: UUID, userId: String): F[Int]
 }
 
 object StationRepository {
@@ -33,10 +33,10 @@ object DoobieStationRepository extends StationRepository[ConnectionIO] {
   def listByUserId(userId: String): ConnectionIO[List[Station]] =
     sql"SELECT id, mac_addr, name, location, description, watering_schedule, user_id, created, updated FROM stations where user_id = $userId".query[Station].to[List]
 
-  def findById(id: UUID): ConnectionIO[Option[Station]] =
-    sql"SELECT id, mac_addr, name, location, description, watering_schedule, user_id, created, updated FROM stations where id = $id".query[Station].option
+  def findById(id: UUID, userId: String): ConnectionIO[Option[Station]] =
+    sql"SELECT id, mac_addr, name, location, description, watering_schedule, user_id, created, updated FROM stations WHERE id = $id AND user_id = $userId".query[Station].option
 
-  def delete(id: UUID): ConnectionIO[Int] =
-    sql"DELETE FROM stations WHERE id = $id".update.run
+  def delete(id: UUID, userId: String): ConnectionIO[Int] =
+    sql"DELETE FROM stations WHERE id = $id AND user_id = $userId".update.run
 
 }

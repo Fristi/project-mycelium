@@ -1,6 +1,6 @@
 package co.mycelium
 
-import co.mycelium.domain.{LogReadings, Station, StationEvent, StationInsert, StationLog, StationReading, StationUpdate, Watering, WateringSchedule}
+import co.mycelium.domain.{Station, StationEvent, StationInsert, StationLog, StationMeasurement, StationUpdate, Watering, WateringSchedule}
 import cron4s.{Cron, CronExpr}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredCodec
@@ -26,11 +26,10 @@ object CirceCodecs {
   implicit val codecWateringSchedule: Codec[WateringSchedule] = deriveConfiguredCodec
   implicit val codecStationEvent: Codec[StationEvent] = deriveConfiguredCodec
   implicit val codecStationLog: Codec[StationLog] = deriveCodec
-  implicit val codecStationReading: Codec[StationReading] = deriveCodec
+  implicit val codecStationReading: Codec[StationMeasurement] = deriveCodec
 
   implicit val codecInsert: Codec[StationInsert] = deriveCodec
   implicit val codecUpdate: Codec[StationUpdate] = deriveCodec
-  implicit val codecLogReadings: Codec[LogReadings] = deriveCodec
   implicit val codecWatering: Codec[Watering] = deriveCodec
   implicit val codecStation: Codec[Station] = deriveCodec
 }

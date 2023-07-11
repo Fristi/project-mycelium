@@ -25,7 +25,7 @@ object Stations extends TapirSchemas {
     val add = stations.post.in(jsonBody[StationInsert])
     val update = stations.put.in(path[UUID]("stationId")).in(jsonBody[StationUpdate])
     val delete = stations.put.in(path[UUID]("stationId"))
-    val checkIn = stations.in(path[UUID]("stationId")).in("checkin").put.in(jsonBody[LogReadings]).out(jsonBody[Watering])
+    val checkIn = stations.in(path[UUID]("stationId")).in("checkin").put.in(jsonBody[List[StationMeasurement]]).out(jsonBody[Watering])
     val watered = stations.in(path[UUID]("stationId")).in("watered").post.in(jsonBody[Watering])
     val log = stations.in(path[UUID]("stationId")).in("log").in(query[Option[Long]]("page")).out(jsonBody[List[StationLog]])
 
@@ -43,18 +43,19 @@ object Stations extends TapirSchemas {
       repos.stations.insert(insert.toStation(id, created, at.sub), created).as(Right(()))
     }
 
-    val delete = endpoints.delete.serverLogic(at => id => repos.stations.delete(id).as(Right(())))
+    val delete = endpoints.delete.serverLogic(at => id => repos.stations.delete(id, at.sub).as(Right(())))
 
     val checkin = endpoints.checkIn.serverLogic { at => {
-      case (id, readings) =>
+      case (id, measurements) =>
           for {
-            stationOpt <- repos.stations.findById(id)
+            stationOpt <- repos.stations.findById(id, at.sub)
+            _ <- repos.measurements.insertMany(id, measurements)
             watering <- stationOpt match {
               case Some(station) =>
                 station.wateringSchedule match {
                   case WateringSchedule.Interval(_, _) => IO(Watering(None))
                   case WateringSchedule.Threshold(belowSoilPf, period) =>
-                    if(readings.readings.lastOption.exists(_.soilPf < belowSoilPf)) IO(Watering(Some(period))) else IO(Watering(None))
+                    if(measurements.lastOption.exists(_.soilPf < belowSoilPf)) IO(Watering(Some(period))) else IO(Watering(None))
                 }
               case None => IO(Watering(None))
             }
