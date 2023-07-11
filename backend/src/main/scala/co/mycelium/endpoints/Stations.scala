@@ -23,6 +23,7 @@ object Stations extends TapirSchemas {
 
     val list = stations.get.out(jsonBody[List[Station]])
     val add = stations.post.in(jsonBody[StationInsert])
+    val get = stations.get.in(path[UUID]("stationId")).in(query[Option[MeasurementPeriod]]("period")).out(jsonBody[StationDetails])
     val update = stations.put.in(path[UUID]("stationId")).in(jsonBody[StationUpdate])
     val delete = stations.put.in(path[UUID]("stationId"))
     val checkIn = stations.in(path[UUID]("stationId")).in("checkin").put.in(jsonBody[List[StationMeasurement]]).out(jsonBody[Watering])
@@ -78,7 +79,17 @@ object Stations extends TapirSchemas {
       }
     }
 
-    Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin))
+    val details = endpoints.get.serverLogic { at => {
+      case (id, period) =>
+        repos.stations.findById(id, at.sub).flatMap {
+          case Some(station) =>
+            repos.measurements.avg(id, period.getOrElse(MeasurementPeriod.LastTwentyFourHours)).map(measurements => Right(StationDetails(station, measurements)))
+          case None =>
+            IO.delay(Left(()))
+        }
+    }}
+
+    Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin, details))
   }
 }
 
@@ -89,4 +100,7 @@ trait TapirSchemas {
   implicit val schemaCronExpr: Schema[CronExpr] = Schema.string
   implicit val schemaFiniteDuration: Schema[FiniteDuration] = Schema.string
   implicit val schemaWateringSchedule: Schema[WateringSchedule] = Schema.derived
+
+  implicit val codecMeasurementPeriod: Codec[String, MeasurementPeriod, CodecFormat.TextPlain] =
+    Codec.string.map(Mapping.fromDecode((str: String) => DecodeResult.fromOption(MeasurementPeriod.fromString(str)))(_.repr))
 }
