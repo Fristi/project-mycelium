@@ -13,10 +13,12 @@ Cargo.lock
 **/*/build
 **/*/.bsp
 
+
 # flyctl launch added from backend/.idea/.gitignore
 # Default ignored files
 backend/.idea/shelf
 backend/.idea/workspace.xml
+backend/data/*
 
 # flyctl launch added from firmware/.embuild/espressif/esp-idf/v4.4.2/.gitignore
 firmware/.embuild/espressif/esp-idf/v4.4.2/**/.config

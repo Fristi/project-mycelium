@@ -1,22 +1,5 @@
 version: "2"
 services:
-  influxdb:
-    image: influxdb:2.0
-    environment:
-      DOCKER_INFLUXDB_INIT_ORG: "mycelium"
-      DOCKER_INFLUXDB_INIT_BUCKET: "mycelium"
-      DOCKER_INFLUXDB_INIT_USERNAME: "mycelium"
-      DOCKER_INFLUXDB_INIT_PASSWORD: "a2122dc0a12140857f772e1f"
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "a2122dc0a12140857f772e1f"
-      DOCKER_INFLUXDB_INIT_MODE: "setup"
-      DOCKER_INFLUXDB_INIT_RETENTION: "52w"
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./data/influxdb:/var/lib/influxdb
-      - ./conf/influxdb:/etc/influxdb/
-    restart: always
-
   s3:
     image: minio/minio
     volumes:
@@ -37,10 +20,8 @@ services:
       retries: 3
 
   db:
-    image: mdillon/postgis:11-alpine
+    image: timescale/timescaledb-ha:pg14-latest
     restart: always
-    volumes:
-      - ./pg/backup:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
     environment:

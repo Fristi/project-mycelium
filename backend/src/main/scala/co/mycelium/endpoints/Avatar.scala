@@ -12,7 +12,7 @@ import java.util.UUID
 object Avatar {
 
   private def mkUrl(uuid: UUID) =
-    Url("s3", Authority.unsafe("mycelium"), blobstore.url.Path(s"$uuid.png"))
+    Url("s3", Authority.unsafe("mycelium"), blobstore.url.Path(s"$uuid"))
 
   def routes(s3: S3Store[IO]) = HttpRoutes.of[IO] {
     case GET -> Root / UUIDVar(uuid) =>
