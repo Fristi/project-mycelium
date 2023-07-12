@@ -1,5 +1,7 @@
 package co.mycelium.db
 
+import cats.{Applicative, Traverse}
+import cats.data.NonEmptyList
 import cats.tagless.{Derive, FunctorK}
 import cats.implicits._
 import co.mycelium.domain._
@@ -15,6 +17,7 @@ trait StationRepository[F[_]] {
   def listByUserId(userId: String): F[List[Station]]
   def findById(id: UUID, userId: String): F[Option[Station]]
   def delete(id: UUID, userId: String): F[Int]
+  def update(id: UUID, userId: String, update: StationUpdate, now: Instant): F[Int]
 }
 
 object StationRepository {
@@ -39,4 +42,29 @@ object DoobieStationRepository extends StationRepository[ConnectionIO] {
   def delete(id: UUID, userId: String): ConnectionIO[Int] =
     sql"DELETE FROM stations WHERE id = $id AND user_id = $userId".update.run
 
+  override def update(id: UUID, userId: String, update: StationUpdate, now: Instant): ConnectionIO[Int] = {
+
+    val updateAttributes = {
+      val updates = List(
+          update.name.map(n => fr"name = $n"),
+          update.location.map(n => fr"location = $n"),
+          update.description.map(n => fr"description = $n"),
+          update.waterSchedule.map(n => fr"watering_schedule = $n")
+      )
+
+      NonEmptyList.fromList(updates.flatten) match {
+        case Some(update) =>
+          fr"UPDATE stations ${Fragments.set(update :+ fr"updated = $now")} WHERE id = $id AND user_id = $userId".update.run
+        case None =>
+          Applicative[ConnectionIO].pure(0)
+      }
+    }
+
+    val eventUpdate = update.waterSchedule match {
+      case Some(schedule) => DoobieStationLogRepository.insert(StationLog(id, now, StationEvent.ScheduleChanged(schedule)))
+      case None => Applicative[ConnectionIO].pure(0)
+    }
+
+    updateAttributes <* eventUpdate
+  }
 }

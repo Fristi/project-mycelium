@@ -24,14 +24,14 @@ object Stations extends TapirSchemas {
 
     val list = stations.get.out(jsonBody[List[Station]])
     val add = stations.post.in(jsonBody[StationInsert])
-    val get = stations.get.in(path[UUID]("stationId")).in(query[Option[MeasurementPeriod]]("period")).out(jsonBody[StationDetails])
+    val details = stations.get.in(path[UUID]("stationId")).in(query[Option[MeasurementPeriod]]("period")).out(jsonBody[StationDetails])
     val update = stations.put.in(path[UUID]("stationId")).in(jsonBody[StationUpdate])
-    val delete = stations.put.in(path[UUID]("stationId"))
+    val delete = stations.delete.in(path[UUID]("stationId"))
     val checkIn = stations.in(path[UUID]("stationId")).in("checkin").put.in(jsonBody[List[StationMeasurement]]).out(jsonBody[Watering])
     val watered = stations.in(path[UUID]("stationId")).in("watered").post.in(jsonBody[Watering])
     val log = stations.in(path[UUID]("stationId")).in("log").in(query[Option[Long]]("page")).out(jsonBody[List[StationLog]])
 
-    val all = Set(list, add, update, delete, checkIn, watered)
+    val all = Set(list, add, details, update, delete, checkIn, watered, log)
   }
 
   def routes(repos: Repositories[IO]): HttpRoutes[IO] = {
@@ -58,7 +58,8 @@ object Stations extends TapirSchemas {
                   case WateringSchedule.Interval(schedule, period) =>
                     repos.stationLog.lastTimeWatered(id).flatMap {
                       case Some(lastTime) => schedule.next(lastTime) match {
-                        case Some(nextTime) if nextTime.isAfter(Instant.now()) => IO(Watering(Some(period)))
+                        case Some(nextTime) if Instant.now().isAfter(nextTime) => IO(Watering(Some(period)))
+                        case None => IO(Watering(Some(period)))
                         case _ => IO(Watering(None))
                       }
                       case None => IO(Watering(None))
@@ -88,7 +89,7 @@ object Stations extends TapirSchemas {
       }
     }
 
-    val details = endpoints.get.serverLogic { at => {
+    val details = endpoints.details.serverLogic { at => {
       case (id, period) =>
         repos.stations.findById(id, at.sub).flatMap {
           case Some(station) =>
@@ -98,7 +99,12 @@ object Stations extends TapirSchemas {
         }
     }}
 
-    Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin, details))
+    val update = endpoints.update.serverLogic { at => {
+      case (id, update) => repos.stations.update(id, at.sub, update, Instant.now()).as(Right(()))
+    }
+    }
+
+    Http4sServerInterpreter[IO]().toRoutes(List(list, add, delete, log, watered, checkin, details, update))
   }
 }
 
