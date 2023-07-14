@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.app',
-  appName: 'capacitorjs-react-tailwind-template',
+  appId: 'co.mycelium.app',
+  appName: 'mycelium-app',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

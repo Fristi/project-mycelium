@@ -1,5 +1,5 @@
 {
-  "name": "capacitorjs-react-tailwind-template",
+  "name": "mycelium-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,11 +9,17 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "build:android": "tsc && vite build && npx cap sync && npx cap open android",
-    "run:android": "tsc && vite build && npx cap sync && npx cap run android"
+    "run:android": "tsc && vite build && npx cap sync && npx cap run android",
+    "preprov": "earthly ../backend/+dev && docker compose -f ../docker-compose.yml -f ../docker-compose.dev.yml up",
+    "stage": "earthly ../backend/+stage && docker compose -f ../docker-compose.yml -f ../docker-compose.dev.yml up"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.2.0",
     "@capacitor/android": "^5.0.4",
+    "@capacitor/app": "^5.0.6",
+    "@capacitor/browser": "^5.0.6",
     "@capacitor/core": "^5.0.4",
+    "axios": "^0.24.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.2"

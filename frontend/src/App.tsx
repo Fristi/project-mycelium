@@ -1,37 +1,43 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { useEffect, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from './AuthContext';
+import axios from 'axios';
 
-// File Based Routing: https://dev.to/franciscomendes10866/file-based-routing-using-vite-and-react-router-3fdo
-const pages: any = import.meta.glob("./pages/**/*.tsx", { eager: true })
 
-const routes = []
+const Test = () => {
+ const { token } = useAuth();
+ const [stations, setStations] = useState([]);
 
-for (const path of Object.keys(pages)) {
-  const fileName = path.match(/\.\/pages\/(.*)\.tsx$/)?.[1]
-  if (!fileName) {
-    continue
-  }
+ useEffect(() => {
+  axios.get("http://localhost:8080/api/stations", { headers: { "Authorization" : `Bearer ${token}`}} )
+  .then(resp => setStations(resp.data));
+ }, [setStations])
+ 
 
-  const normalizedPathName = fileName.includes("$")
-    ? fileName.replace("$", ":")
-    : fileName.replace(/\/index/, "")
-
-  routes.push({
-    path: fileName === "index" ? "/" : `/${normalizedPathName.toLowerCase()}`,
-    Element: pages[path].default,
-    ErrorBoundary: pages[path]?.ErrorBoundary,
-  })
+ return (<p>{JSON.stringify(stations)}</p>);
 }
 
-const router = createBrowserRouter(
-  routes.map(({ Element, ErrorBoundary, ...rest }) => ({
-    ...rest,
-    element: <Element />,
-    ...(ErrorBoundary && { errorElement: <ErrorBoundary /> }),
-  }))
-)
+const App: React.FC = () => {
+  const { handleRedirectCallback } = useAuth0();
 
-const App = () => {
-  return <RouterProvider router={router} />
-}
+  useEffect(() => {
+    // Handle the 'appUrlOpen' event and call `handleRedirectCallback`
+    CapApp.addListener('appUrlOpen', async ({ url }) => {
+      if (url.includes('state') && (url.includes('code') || url.includes('error'))) {
+        await handleRedirectCallback(url);
+      }
+      // No-op on Android
+      await Browser.close();
+    });
+  }, [handleRedirectCallback]);
+
+  return (
+    <div>
+      <Test />
+    </div>
+  );
+};
 
 export default App
