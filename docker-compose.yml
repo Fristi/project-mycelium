@@ -20,7 +20,7 @@ services:
       retries: 3
 
   db:
-    image: timescale/timescaledb-ha:pg14-latest
+    image: timescale/timescaledb:2.11.1-pg15
     restart: always
     ports:
       - "5432:5432"

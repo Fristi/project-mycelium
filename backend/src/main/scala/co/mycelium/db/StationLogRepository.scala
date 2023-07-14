@@ -12,7 +12,6 @@ import java.util.UUID
 trait StationLogRepository[F[_]] {
   def insert(log: StationLog): F[Int]
   def listByStation(id: UUID, offset: Long): F[List[StationLog]]
-
   def lastTimeWatered(id: UUID): F[Option[Instant]]
 }
 
