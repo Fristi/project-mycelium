@@ -4,7 +4,15 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import App from "./App.tsx"
 import "./styles/global.css"
 import { Capacitor } from '@capacitor/core';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+  RouterProvider,
+} from "react-router-dom";
 import { AuthContext } from "./AuthContext.tsx";
+import { PlantView } from "./pages/PlantView.tsx";
+import { PlantList } from "./pages/PlantList.tsx";
 
 const platform = Capacitor.getPlatform()
 const iosOrAndroid = platform === 'ios' || platform === 'android';
@@ -17,6 +25,24 @@ const cacheLocation = iosOrAndroid
   ? "memory"
   : "localstorage"
 
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route
+        path="/"
+        element={<App />}
+        // errorElement={<ErrorPage />}
+      >
+        <Route>
+          <Route index element={<PlantList />} />
+          <Route
+            path="plants/:plantId"
+            element={<PlantView />}
+          />
+        </Route>
+      </Route>
+    )
+  );
+  
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -33,7 +59,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         }}
       >
       <AuthContext>
-        <App />
+        <RouterProvider router={router} />
       </AuthContext>
     </Auth0Provider>
   </React.StrictMode>

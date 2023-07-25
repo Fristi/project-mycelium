@@ -7,6 +7,16 @@ deps:
     # Output these back in case npm install changes them.
     SAVE ARTIFACT package.json AS LOCAL ./app/package.json
 
+generate-client-axios:
+    FROM earthly/dind:alpine
+    COPY ../backend/+generate-client-spec/* /
+    WORKDIR stage
+    WITH DOCKER --pull openapitools/openapi-generator-cli:v6.6.0
+        RUN docker run -v $(pwd):/tmp/client -v /openapi.json:/openapi.json openapitools/openapi-generator-cli:v6.6.0 generate -i /openapi.json -g typescript-axios -o /tmp/client --additional-properties=withSeparateModelsAndApi=true,apiPackage=api,modelPackage=model
+    END
+    SAVE ARTIFACT ./* AS LOCAL ./src/client/
+    
+
 build:
     FROM +deps
     COPY --dir ./src ./src

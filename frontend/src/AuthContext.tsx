@@ -12,7 +12,7 @@ type ContextType = {
 
 const initialContext: ContextType = { token: undefined }
 
-const Context = createContext<ContextType>(initialContext);
+const AuthenticationContext = createContext<ContextType>(initialContext);
   
 export const AuthContext: React.FC<Props> = ({ children }) =>  {
     const { user, isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
@@ -39,7 +39,7 @@ export const AuthContext: React.FC<Props> = ({ children }) =>  {
         return (<p>Loading</p>)
     }
 
-    return <Context.Provider value={{token, user}}>{children}</Context.Provider> 
+    return <AuthenticationContext.Provider value={{token, user}}>{children}</AuthenticationContext.Provider> 
 }
 
-export const useAuth = () => useContext(Context);
+export const useAuth = () => useContext(AuthenticationContext);

@@ -2,25 +2,13 @@ import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useAuth } from './AuthContext';
-import axios from 'axios';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import Shell from './Shell';
 
-
-const Test = () => {
- const { token } = useAuth();
- const [stations, setStations] = useState([]);
-
- useEffect(() => {
-  axios.get("http://localhost:8080/api/stations", { headers: { "Authorization" : `Bearer ${token}`}} )
-  .then(resp => setStations(resp.data));
- }, [setStations])
- 
-
- return (<p>{JSON.stringify(stations)}</p>);
-}
 
 const App: React.FC = () => {
   const { handleRedirectCallback } = useAuth0();
+  const queryClient = new QueryClient()
 
   useEffect(() => {
     // Handle the 'appUrlOpen' event and call `handleRedirectCallback`
@@ -35,7 +23,9 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <Test />
+      <QueryClientProvider client={queryClient}>
+        <Shell />
+      </QueryClientProvider>
     </div>
   );
 };

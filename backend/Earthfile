@@ -26,6 +26,12 @@ stage:
     ENTRYPOINT ["java","-cp","build/bin/backend-assembly-1.0.jar","co.mycelium.Main"]
     SAVE IMAGE local/project-mycelium-backend:dev
 
+generate-client-spec:
+    FROM +deps
+    COPY --dir src src
+    RUN sbt "runMain co.mycelium.OpenApiGenerator"
+    SAVE ARTIFACT openapi.json AS LOCAL openapi
+
 docker:
     FROM eclipse-temurin:17.0.7_7-jre
     COPY +build/bin build/bin
