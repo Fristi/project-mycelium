@@ -1,12 +1,12 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'co.mycelium.app',
-  appName: 'mycelium-app',
-  webDir: 'dist',
+  appId: "co.mycelium.app",
+  appName: "mycelium-app",
+  webDir: "dist",
   server: {
-    androidScheme: 'https'
-  }
+    androidScheme: "https",
+  },
 };
 
 export default config;
