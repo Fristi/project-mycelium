@@ -12,8 +12,8 @@ import { PlantEdit } from "./pages/PlantEdit.tsx";
 
 const platform = Capacitor.getPlatform();
 const iosOrAndroid = platform === "ios" || platform === "android";
-
-const callbackUri = iosOrAndroid ? "co.mycelium.app://dev-plq6-asi.eu.auth0.com/capacitor/co.mycelium.app/callback" : "http://localhost:8080";
+const host = import.meta.env.MYCELIUM_HOST ?? "http://localhost:8080";
+const callbackUri = iosOrAndroid ? "co.mycelium.app://dev-plq6-asi.eu.auth0.com/capacitor/co.mycelium.app/callback" : host;
 
 const cacheLocation = iosOrAndroid ? "memory" : "localstorage";
 
