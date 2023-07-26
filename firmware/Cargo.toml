@@ -1,5 +1,5 @@
 [package]
-name = "esp-idf-v4-test"
+name = "mycelium-firmware"
 version = "0.1.0"
 authors = ["Fristi <mark@vectos.net>"]
 edition = "2021"
@@ -22,17 +22,15 @@ partition_table = "partitions.csv" # Supports CSV and binary formats
 
 [dependencies]
 log = { version = "0.4.17" }
-esp-idf-sys = { version = "0.31.10" }
-esp-idf-svc = { version = "0.43.4" }
-esp-idf-hal = { version = "0.39.4" }
-embedded-svc = { version = "0.23"  }
-bluedroid = "0.3.7"
+esp-idf-sys = { version = "0.33.1", features = ["native"] }
+esp-idf-svc = { version = "0.46.0" }
+esp-idf-hal = { version = "0.41.2" }
+embedded-svc = { version = "0.25.3"  }
+bluedroid = { git = "https://github.com/Fristi/bluedroid.git", branch = "updated-dependencies" }
 heapless = "0.7.16"
 num_enum = "0.6.1"
 serde = "1.0.164"
-rmp-serde = "1.1.1"
-serde-json-core = "0.5.0"
-
+serde_json = "1.0.104"
 
 [build-dependencies]
 embuild = "0.31.2"

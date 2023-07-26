@@ -1,59 +1,84 @@
-use embedded_svc::storage::RawStorage;
+use std::sync::{Arc, Mutex};
 use esp_idf_svc::nvs::EspDefaultNvs;
-use esp_idf_sys::EspError;
-use serde::{Deserialize, Serialize};
-use rmp_serde::decode::{from_slice, from_read, Error as RmpDecodeError};
-use rmp_serde::encode::{to_vec, Error as RmpEncodeError};
-use rmp_serde::Serializer;
+use serde::{Serialize};
 use serde::de::DeserializeOwned;
+
+use serde_json::ser::{to_string};
+use serde_json::{from_str};
 
 #[derive(Debug)]
 pub enum KvStoreError {
-    Esp(EspError),
-    Encode(RmpEncodeError),
-    Decode(RmpDecodeError)
+    Esp(esp_idf_sys::EspError),
+    Json(serde_json::Error),
+    StringConversionError
 }
 
-pub trait KvStore {
+pub trait KvStore : Send + Sync + Clone {
     fn get<T : DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError>;
-    fn set<T : Serialize>(&mut self, key: &str, value: T) -> Result<(), KvStoreError>;
+    fn set<T : Serialize>(&self, key: &str, value: T) -> Result<(), KvStoreError>;
     fn contains(&self, key: &str) -> Result<bool, KvStoreError>;
+    fn remove(&self, key: &str) -> Result<(), KvStoreError>;
 }
 
-pub struct NvsKvsStore {
-    nvs: EspDefaultNvs
+pub struct NvsKvStore {
+    pub nvs: Arc<Mutex<EspDefaultNvs>>
 }
 
-impl NvsKvsStore {
-    pub fn new(nvs: EspDefaultNvs) -> NvsKvsStore { NvsKvsStore { nvs } }
+impl NvsKvStore {
+    pub fn new(nvs: EspDefaultNvs) -> NvsKvStore { NvsKvStore { nvs: Arc::new(Mutex::new(nvs)) } }
 }
 
-impl KvStore for NvsKvsStore {
+impl Clone for NvsKvStore {
+    fn clone(&self) -> Self {
+        NvsKvStore { nvs: self.nvs.clone() }
+    }
+}
+
+impl KvStore for NvsKvStore {
     fn get<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError> {
-        let buf: &mut [u8; 255] = &mut [0u8;255];
+        let buf: &mut [u8; 2048] = &mut [0u8;2048];
+        let nvs = self.nvs.lock().unwrap();
 
-        if self.nvs.get_raw(key, buf)?.is_some() {
-            let res = from_slice(buf).map_err(|err| KvStoreError::Decode(err))?;
+        if nvs.get_raw(key, buf)?.is_some() {
+            let contents = String::from_utf8(buf.to_vec()).map_err(|_| KvStoreError::StringConversionError)?;
+            let res = from_str::<T>(contents.trim_matches(char::from(0)))?;
             Ok(Some(res))
         } else {
             Ok(None)
         }
     }
 
-    fn set<T: Serialize>(&mut self, key: &str, value: T) -> Result<(), KvStoreError> {
-        let bytes = to_vec(&value).map_err(|err| KvStoreError::Encode(err))?;
-        self.nvs.set_raw(key, bytes.as_slice())?;
+    fn set<T: Serialize>(&self, key: &str, value: T) -> Result<(), KvStoreError> {
+        let str = to_string(&value)?;
+        let nvs = &mut self.nvs.lock().unwrap();
+        nvs.set_raw(key, str.as_bytes())?;
         Ok(())
     }
 
     fn contains(&self, key: &str) -> Result<bool, KvStoreError> {
-        let res = self.nvs.contains(key)?;
+        let nvs = self.nvs.lock().unwrap();
+        let res = nvs.contains(key)?;
         Ok(res)
+    }
+
+    fn remove(&self, key: &str) -> Result<(), KvStoreError> {
+        let nvs = &mut self.nvs.lock().unwrap();
+        nvs.remove(key).map_err(KvStoreError::Esp)?;
+        Ok(())
     }
 }
 
-impl From<EspError> for KvStoreError {
-    fn from(value: EspError) -> Self {
+impl From<esp_idf_sys::EspError> for KvStoreError {
+    fn from(value: esp_idf_sys::EspError) -> Self {
         KvStoreError::Esp(value)
     }
 }
+
+impl From<serde_json::Error> for KvStoreError {
+    fn from(value: serde_json::Error) -> Self {
+        KvStoreError::Json(value)
+    }
+}
+
+unsafe impl Send for NvsKvStore { }
+unsafe impl Sync for NvsKvStore { }
