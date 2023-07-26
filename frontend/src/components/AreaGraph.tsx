@@ -1,6 +1,7 @@
 import {
   AreaChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -36,24 +37,22 @@ export default (props: Props) => {
             <AreaChart data={props.data}>
               <defs>
                 <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#15803d" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#052e16" stopOpacity={0.8} />
+                  <stop offset="5%" stopColor="#15803d" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="1 3" />
+              <CartesianGrid vertical={false} stroke="#DDD" />
               <XAxis dataKey="on" tickFormatter={formatDate} />
               <YAxis />
               <Tooltip />
-              <Area
-                strokeOpacity={0.4}
-                strokeWidth={1}
-                isAnimationActive={false}
-                fill="url(#gradient)"
-                type="monotone"
-                name={props.label}
+              <Line type="monotone" unit={props.label} strokeLinecap="round" strokeWidth={2}
+                style={{ strokeDasharray: `40% 60%` }}
                 dataKey="value"
-                activeDot={{ r: 4 }}
+                stroke="#15803d"
+                dot={false}
+                legendType="none"
               />
+              <Area type="monotone" dataKey="value" stroke="#15803d" strokeWidth={2} fillOpacity={1} fill="url(#gradient)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

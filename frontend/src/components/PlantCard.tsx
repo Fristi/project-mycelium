@@ -30,10 +30,6 @@ export default (props: Props) => {
           </h3>
           <PlantLocation location={station.location} />
           <PlantWateringSchedule schedule={station.wateringSchedule} />
-
-          <p className="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">
-            {station.description}
-          </p>
         </div>
       </div>
     </div>

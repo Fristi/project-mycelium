@@ -202,7 +202,7 @@ export const PlantView = () => {
               </div>
               <div className="mt-6 flex space-x-3 md:mt-0 md:ml-4">
                 <a
-                  href={`/plant/${station.id}/settings`}
+                  href={`/plants/${station.id}/edit`}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
                 >
                   Settings
@@ -216,6 +216,12 @@ export const PlantView = () => {
           <div className="mx-auto max-w-7xl py-4">
             <div className="mx-auto grid max-w-2xl grid-cols-1 grid-rows-1 items-start gap-x-8  lg:mx-0 lg:max-w-none lg:grid-cols-3">
               <div className="sm:mx-0 lg:col-span-2 lg:row-span-2 lg:row-end-2">
+              
+                <AreaGraph
+                  header="Soil capacitive"
+                  label="pF"
+                  data={measurements.soilPf}
+                />
                 <AreaGraph
                   header="Relative humidity"
                   label="%"
@@ -226,11 +232,7 @@ export const PlantView = () => {
                   label="Celsius"
                   data={measurements.temperature}
                 />
-                <AreaGraph
-                  header="Soil capacitive"
-                  label="pF"
-                  data={measurements.soilPf}
-                />
+                <AreaGraph header="Lux" label="lx" data={measurements.lux} />
                 <AreaGraph
                   header="Watertank capacitive"
                   label="pF"
@@ -241,7 +243,6 @@ export const PlantView = () => {
                   label="V"
                   data={measurements.batteryVoltage}
                 />
-                <AreaGraph header="Lux" label="lx" data={measurements.lux} />
               </div>
               <div className="lg:col-start-3">
                 <h2 className="text-sm font-semibold leading-6 text-gray-900 mb-5">

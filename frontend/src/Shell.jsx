@@ -33,7 +33,7 @@ export default function Shell() {
                     <div className="flex-shrink-0">
                       <img
                         className="h-8 w-8"
-                        src="/public/logo.svg"
+                        src="/logo.svg"
                         alt="Mycelium"
                       />
                     </div>

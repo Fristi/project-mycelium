@@ -13,6 +13,7 @@ import {
 import { AuthContext } from "./AuthContext.tsx";
 import { PlantView } from "./pages/PlantView.tsx";
 import { PlantList } from "./pages/PlantList.tsx";
+import { PlantEdit } from "./pages/PlantEdit.tsx";
 
 const platform = Capacitor.getPlatform();
 const iosOrAndroid = platform === "ios" || platform === "android";
@@ -32,6 +33,7 @@ const router = createBrowserRouter(
     >
       <Route>
         <Route index element={<PlantList />} />
+        <Route path="plants/:plantId/edit" element={<PlantEdit />} />
         <Route path="plants/:plantId" element={<PlantView />} />
       </Route>
     </Route>,
