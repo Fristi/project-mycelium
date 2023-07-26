@@ -1,13 +1,6 @@
 import { useParams } from "react-router-dom";
 import AreaGraph from "../components/AreaGraph";
-import {
-  StationDetails,
-  StationLog,
-  StationMeasurement,
-  WateringSchedule,
-  getStationDetails,
-  getStationLog,
-} from "../api";
+import { StationDetails, StationLog, StationMeasurement, WateringSchedule, getStationDetails, getStationLog } from "../api";
 import Retrieve from "../Retrieve";
 import PlantLocation from "../components/PlantLocation";
 import PlantWateringSchedule from "../components/PlantWateringSchedule";
@@ -28,28 +21,18 @@ const PlantLogItemScheduleChanged = (props: ScheduleChangedProps) => {
   return (
     <li>
       <div className="relative pb-8">
-        {!props.lastItem && (
-          <span
-            className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200"
-            aria-hidden="true"
-          />
-        )}
+        {!props.lastItem && <span className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />}
         <div className="relative flex items-start space-x-3">
           <div>
             <div className="relative px-1">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white">
-                <CalendarDaysIcon
-                  className="h-5 w-5 text-emerald-500"
-                  aria-hidden="true"
-                />
+                <CalendarDaysIcon className="h-5 w-5 text-emerald-500" aria-hidden="true" />
               </div>
             </div>
           </div>
           <div className="min-w-0 flex-1 py-1.5">
             <div className="text-sm text-gray-500">
-              Changed schedule to{" "}
-              <PlantWateringSchedule schedule={props.schedule} /> -{" "}
-              {relativeDate(props.on)}
+              Changed schedule to <PlantWateringSchedule schedule={props.schedule} /> - {relativeDate(props.on)}
             </div>
           </div>
         </div>
@@ -68,28 +51,18 @@ const PlantLogItemWatered = (props: WateredProps) => {
   return (
     <li>
       <div className="relative pb-8">
-        {!props.lastItem && (
-          <span
-            className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200"
-            aria-hidden="true"
-          />
-        )}
+        {!props.lastItem && <span className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />}
         <div className="relative flex items-start space-x-3">
           <div>
             <div className="relative px-1">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white">
-                <EyeDropperIcon
-                  className="h-5 w-5 text-blue-500"
-                  aria-hidden="true"
-                />
+                <EyeDropperIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
               </div>
             </div>
           </div>
           <div className="min-w-0 flex-1 py-1.5">
             <div className="text-sm text-gray-500">
-              Watered plant for{" "}
-              <span className="font-semibold">{props.period}</span> -{" "}
-              {relativeDate(props.on)}
+              Watered plant for <span className="font-semibold">{props.period}</span> - {relativeDate(props.on)}
             </div>
           </div>
         </div>
@@ -104,24 +77,10 @@ const PlantLog = (props: PlantLogProps) => {
   const renderEvent = (item: StationLog, idx: number, lastItem: boolean) => {
     switch (item.event._type) {
       case "ScheduleChanged":
-        return (
-          <PlantLogItemScheduleChanged
-            key={`item-${idx}`}
-            on={item.on}
-            schedule={item.event.schedule}
-            lastItem={lastItem}
-          />
-        );
+        return <PlantLogItemScheduleChanged key={`item-${idx}`} on={item.on} schedule={item.event.schedule} lastItem={lastItem} />;
 
       case "Watered":
-        return (
-          <PlantLogItemWatered
-            key={`item-${idx}`}
-            on={item.on}
-            period={item.event.period}
-            lastItem={lastItem}
-          />
-        );
+        return <PlantLogItemWatered key={`item-${idx}`} on={item.on} period={item.event.period} lastItem={lastItem} />;
     }
   };
 
@@ -129,21 +88,13 @@ const PlantLog = (props: PlantLogProps) => {
     return (
       <div className="flow-root">
         <ul role="list" className="-mb-8">
-          {log.map((item, idx) =>
-            renderEvent(item, idx, idx === log.length - 1),
-          )}
+          {log.map((item, idx) => renderEvent(item, idx, idx === log.length - 1))}
         </ul>
       </div>
     );
   };
 
-  return (
-    <Retrieve
-      dataKey={`plants/${props.plantId}/log`}
-      retriever={getStationLog(props.plantId)}
-      renderData={renderPlantLog}
-    />
-  );
+  return <Retrieve dataKey={`plants/${props.plantId}/log`} retriever={getStationLog(props.plantId)} renderData={renderPlantLog} />;
 };
 
 export const PlantView = () => {
@@ -173,27 +124,15 @@ export const PlantView = () => {
             <div className="py-6 md:flex md:items-center md:justify-between lg:border-t lg:border-gray-200">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center">
-                  <img
-                    className="hidden h-16 w-16 rounded-full sm:block"
-                    src={`${host}/avatar/${plantId}`}
-                    alt=""
-                  />
+                  <img className="hidden h-16 w-16 rounded-full sm:block" src={`${host}/avatar/${plantId}`} alt="" />
                   <div>
                     <div className="flex items-center">
-                      <img
-                        className="h-16 w-16 rounded-full sm:hidden"
-                        src={`${host}/avatar/${plantId}`}
-                        alt=""
-                      />
+                      <img className="h-16 w-16 rounded-full sm:hidden" src={`${host}/avatar/${plantId}`} alt="" />
                       <div className="pl-7">
-                        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:leading-9 sm:truncate">
-                          {station.name}
-                        </h1>
+                        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:leading-9 sm:truncate">{station.name}</h1>
                         <p>
                           <PlantLocation location={station.location} />
-                          <PlantWateringSchedule
-                            schedule={station.wateringSchedule}
-                          />
+                          <PlantWateringSchedule schedule={station.wateringSchedule} />
                         </p>
                       </div>
                     </div>
@@ -216,38 +155,15 @@ export const PlantView = () => {
           <div className="mx-auto max-w-7xl py-4">
             <div className="mx-auto grid max-w-2xl grid-cols-1 grid-rows-1 items-start gap-x-8  lg:mx-0 lg:max-w-none lg:grid-cols-3">
               <div className="sm:mx-0 lg:col-span-2 lg:row-span-2 lg:row-end-2">
-              
-                <AreaGraph
-                  header="Soil capacitive"
-                  label="pF"
-                  data={measurements.soilPf}
-                />
-                <AreaGraph
-                  header="Relative humidity"
-                  label="%"
-                  data={measurements.humidity}
-                />
-                <AreaGraph
-                  header="Temperature"
-                  label="Celsius"
-                  data={measurements.temperature}
-                />
+                <AreaGraph header="Soil capacitive" label="pF" data={measurements.soilPf} />
+                <AreaGraph header="Relative humidity" label="%" data={measurements.humidity} />
+                <AreaGraph header="Temperature" label="Celsius" data={measurements.temperature} />
                 <AreaGraph header="Lux" label="lx" data={measurements.lux} />
-                <AreaGraph
-                  header="Watertank capacitive"
-                  label="pF"
-                  data={measurements.tankPf}
-                />
-                <AreaGraph
-                  header="Battery voltage"
-                  label="V"
-                  data={measurements.batteryVoltage}
-                />
+                <AreaGraph header="Watertank capacitive" label="pF" data={measurements.tankPf} />
+                <AreaGraph header="Battery voltage" label="V" data={measurements.batteryVoltage} />
               </div>
               <div className="lg:col-start-3">
-                <h2 className="text-sm font-semibold leading-6 text-gray-900 mb-5">
-                  Activity
-                </h2>
+                <h2 className="text-sm font-semibold leading-6 text-gray-900 mb-5">Activity</h2>
                 <PlantLog plantId={plantId} />
               </div>
             </div>
@@ -257,11 +173,5 @@ export const PlantView = () => {
     );
   };
 
-  return (
-    <Retrieve
-      dataKey={`plant/${plantId}/details`}
-      retriever={getStationDetails(plantId ?? "")}
-      renderData={renderData}
-    />
-  );
+  return <Retrieve dataKey={`plant/${plantId}/details`} retriever={getStationDetails(plantId ?? "")} renderData={renderData} />;
 };

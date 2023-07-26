@@ -14,11 +14,5 @@ export const PlantList = () => {
     );
   };
 
-  return (
-    <Retrieve
-      dataKey="stations"
-      retriever={getStations()}
-      renderData={renderData}
-    />
-  );
+  return <Retrieve dataKey="stations" retriever={getStations()} renderData={renderData} />;
 };

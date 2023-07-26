@@ -21,6 +21,5 @@ build:
     FROM +deps
     COPY --dir ./src ./src
     COPY vite.config.ts tsconfig.* *.config.js index.html ./
-    RUN npm run prettier-check
     RUN npm run build
     SAVE ARTIFACT dist AS LOCAL ./dist

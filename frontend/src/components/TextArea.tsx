@@ -14,9 +14,7 @@ const TextArea = (props: Props & FieldHookConfig<string>) => {
   return (
     <div className="mt-6 sm:mt-5">
       <div className="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5 pb-5">
-        <label className="block text-sm font-medium text-gray-700">
-          {props.label}
-        </label>
+        <label className="block text-sm font-medium text-gray-700">{props.label}</label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <textarea
             {...field}
@@ -25,10 +23,7 @@ const TextArea = (props: Props & FieldHookConfig<string>) => {
           />
           {isError && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <ExclamationCircleIcon
-                className="h-5 w-5 text-red-500"
-                aria-hidden="true"
-              />
+              <ExclamationCircleIcon className="h-5 w-5 text-red-500" aria-hidden="true" />
             </div>
           )}
         </div>

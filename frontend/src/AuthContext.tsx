@@ -15,13 +15,7 @@ const initialContext: ContextType = { token: undefined };
 const AuthenticationContext = createContext<ContextType>(initialContext);
 
 export const AuthContext: React.FC<Props> = ({ children }) => {
-  const {
-    user,
-    isAuthenticated,
-    isLoading,
-    loginWithRedirect,
-    getAccessTokenSilently,
-  } = useAuth0();
+  const { user, isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
   const [token, setToken] = React.useState<string | null>(null);
 
   useEffect(() => {
@@ -53,11 +47,7 @@ export const AuthContext: React.FC<Props> = ({ children }) => {
     return <p>Loading</p>;
   }
 
-  return (
-    <AuthenticationContext.Provider value={{ token, user }}>
-      {children}
-    </AuthenticationContext.Provider>
-  );
+  return <AuthenticationContext.Provider value={{ token, user }}>{children}</AuthenticationContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthenticationContext);
