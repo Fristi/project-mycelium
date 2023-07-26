@@ -8,7 +8,7 @@ type Props = {
 
 export default (props: Props) => {
   const station = props.station;
-  const host = import.meta.env.MYCELIUM_HOST ?? "http://localhost:8080";
+  const host = import.meta.env.MODE == "production" ? "https://mycelium.fly.dev" : "http://localhost:8080";
 
   return (
     <div className="flex flex-col items-start justify-between">

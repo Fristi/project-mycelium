@@ -114,7 +114,7 @@ export const PlantView = () => {
   const renderData = (stationDetails: StationDetails) => {
     const station = stationDetails.station;
     const plantId = station.id;
-    const host = import.meta.env.MYCELIUM_HOST ?? "http://localhost:8080";
+    const host = import.meta.env.MODE == "production" ? "https://mycelium.fly.dev" : "http://localhost:8080";
     const measurements = splitMeasurements(stationDetails.measurements);
 
     return (

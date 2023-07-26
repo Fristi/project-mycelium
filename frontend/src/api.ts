@@ -54,7 +54,7 @@ export type StationUpdate = {
   wateringSchedule?: WateringSchedule;
 };
 
-const host = import.meta.env.MYCELIUM_HOST ?? "http://localhost:8080";
+const host = import.meta.env.MODE == "production" ? "https://mycelium.fly.dev" : "http://localhost:8080";
 
 export function getStations(): (token: string) => Promise<[Station]> {
   return (token) => axios.get(`${host}/api/stations`, { headers: { Authorization: `Bearer ${token}` } }).then((x) => x.data);
