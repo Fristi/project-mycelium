@@ -49,26 +49,29 @@ pub struct OnboardingHandler<W, N, A> {
     auth: A
 }
 
-impl <W, N, A> OnboardingHandler<W, N, A> {
+impl <W : 'static, N: 'static, A: 'static> OnboardingHandler<W, N, A> {
 
     pub fn new(wifi: W, kv: N, auth: A) -> OnboardingHandler<W, N, A> where W : MyceliumWifi, N : KvStore, A : Auth {
         OnboardingHandler { wifi, kv, auth }
     }
 
 
-    pub fn handle(self, bytes: &Vec<u8>, state: Arc<RwLock<OnboardingState>>) where W : MyceliumWifi, N : KvStore, A : Auth {
+    pub fn handle(this: Arc<Self>, bytes: &Vec<u8>, state: Arc<RwLock<OnboardingState>>) where W : MyceliumWifi, N : KvStore, A : Auth {
         let b = bytes.clone();
         let s = state.clone();
+        let wifi = this.wifi.clone();
+        let kv = this.kv.clone();
+        let auth = this.auth.clone();
 
         let _ = std::thread::spawn(move || {
             let settings = from_slice::<OnboardingSettings>(b.as_slice()).unwrap();
             *state.write().unwrap() = OnboardingState::ProvisioningWifi;
 
-            let enriched_settings = self.wifi.connect(settings.wifi_settings()).unwrap();
+            let enriched_settings = wifi.connect(settings.wifi_settings()).unwrap();
 
-            self.kv.set("wifi_settings", enriched_settings).unwrap();
+            kv.set("wifi_settings", enriched_settings).unwrap();
 
-            let resp = self.auth.request_device_code().unwrap();
+            let resp = auth.request_device_code().unwrap();
 
             *state.write().unwrap() = OnboardingState::AwaitingAuthorization { url: resp.verification_uri_complete };
 
@@ -77,13 +80,13 @@ impl <W, N, A> OnboardingHandler<W, N, A> {
             let mut authenticated = false;
 
             while authenticated == false {
-                match self.auth.poll_token(&resp.device_code) {
+                match auth.poll_token(&resp.device_code) {
                     Ok(TokenResult::Error { error }) => println!("Auth0 error {:?}", error),
                     Ok(TokenResult::AccessToken { .. }) => println!("Skipping!"),
                     Ok(TokenResult::Full { access_token, refresh_token, expires_in }) => {
-                        self.kv.set("refresh_token", refresh_token).unwrap();
-                        self.kv.set("access_token", access_token).unwrap();
-                        self.kv.set("expires_in", expires_in).unwrap();
+                        kv.set("refresh_token", refresh_token).unwrap();
+                        kv.set("access_token", access_token).unwrap();
+                        kv.set("expires_in", expires_in).unwrap();
 
                         *state.write().unwrap() = OnboardingState::Complete;
                         authenticated = true;
@@ -94,6 +97,12 @@ impl <W, N, A> OnboardingHandler<W, N, A> {
                 std::thread::sleep(Duration::from_secs(5))
             }
         });
+    }
+}
+
+impl <W : Clone, N : Clone, A : Clone> Clone for OnboardingHandler<W, N, A> {
+    fn clone(&self) -> Self {
+        OnboardingHandler { wifi: self.wifi.clone(), auth: self.auth.clone(), kv: self.kv.clone() }
     }
 }
 

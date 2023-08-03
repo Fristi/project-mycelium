@@ -38,7 +38,9 @@ pub fn onboarding(wifi: EspMyceliumWifi, kv: NvsKvStore, auth: Auth0) {
         .permissions(AttributePermissions::new().write().read())
         .properties(CharacteristicProperties::new().write().read())
         .on_write(move |bytes, _| {
-            handler.lock().unwrap().handle(&bytes, state.clone()) }
+            let h = handler.lock().unwrap();
+            let arc = Arc::new(h.clone());
+            OnboardingHandler::handle(arc, &bytes, state.clone()) }
         )
         .on_read(|_| vec![])
         .show_name()
