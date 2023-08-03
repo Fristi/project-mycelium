@@ -54,7 +54,7 @@ export const PlantProvisioning = () => {
     const res: OnboardingState = JSON.parse(decoder.decode(data));
     return res;
   };
-
+  
 
   useEffect(() => {
     const interval = setInterval(async () => {
