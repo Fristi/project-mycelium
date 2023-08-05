@@ -15,10 +15,10 @@ const SERVICE_UUID: &str = "00467768-6228-2272-4663-277478269000";
 const STATUS_UUID: &str = "00467768-6228-2272-4663-277478269001";
 const RPC_COMMAND_UUID: &str = "00467768-6228-2272-4663-277478269002";
 
-pub fn onboarding(wifi: EspMyceliumWifi, kv: NvsKvStore, auth: Auth0) {
-    let handler = Arc::new(Mutex::new(OnboardingHandler::new(wifi, kv, auth)));
-    let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
-    let state_read = state.clone();
+pub fn onboarding(handler: OnboardingHandler) {
+    // let handler = Arc::new(Mutex::new(OnboardingHandler::new(wifi, kv, auth)));
+    // let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
+    // let state_read = state.clone();
 
     let current_state = Characteristic::new(BleUuid::from_uuid128_string(STATUS_UUID))
         .name("Current state")
@@ -26,10 +26,7 @@ pub fn onboarding(wifi: EspMyceliumWifi, kv: NvsKvStore, auth: Auth0) {
         .properties(CharacteristicProperties::new().read().notify())
         .show_name()
         .on_read(move |_| {
-            let guard = state_read.read().unwrap();
-            let state = guard.clone();
-            let bytes = to_vec(&state).unwrap();
-            bytes
+            vec![]
         })
         .build();
 
@@ -37,10 +34,7 @@ pub fn onboarding(wifi: EspMyceliumWifi, kv: NvsKvStore, auth: Auth0) {
         .name("RPC command handler")
         .permissions(AttributePermissions::new().write().read())
         .properties(CharacteristicProperties::new().write().read())
-        .on_write(move |bytes, _| {
-            let h = handler.lock().unwrap();
-            let arc = Arc::new(h.clone());
-            OnboardingHandler::handle(arc, &bytes, state.clone()) }
+        .on_write(move |bytes, _| { handler.handle(&bytes) }
         )
         .on_read(|_| vec![])
         .show_name()

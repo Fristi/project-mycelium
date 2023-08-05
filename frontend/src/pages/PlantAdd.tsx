@@ -58,13 +58,11 @@ export const PlantProvisioning = () => {
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      await BleClient.initialize();
-      await BleClient.requestDevice({ services: [MYCELIUM_SERVICE] });
       await BleClient.connect(deviceId);
       const stateBytes = await BleClient.read(deviceId, MYCELIUM_SERVICE, MYCELIUM_STATE_SERVICE);
       await BleClient.disconnect(deviceId);
       setState(decodeState(stateBytes));
-    }, 1000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -121,7 +119,7 @@ export const PlantAdd = () => {
         const device = await BleClient.requestDevice({ services: [MYCELIUM_SERVICE] });
         await BleClient.connect(device.deviceId);
         const byteArray = new TextEncoder().encode(JSON.stringify(values));
-        await BleClient.write(device.deviceId, MYCELIUM_SERVICE, MYCELIUM_RPC_SERVICE, new DataView(byteArray.buffer));        
+        await BleClient.write(device.deviceId, MYCELIUM_SERVICE, MYCELIUM_RPC_SERVICE, new DataView(byteArray.buffer));
         await BleClient.disconnect(device.deviceId);
         return device.deviceId;
       };
