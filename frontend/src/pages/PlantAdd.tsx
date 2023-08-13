@@ -70,7 +70,7 @@ export const PlantProvisioning = () => {
     return (
       <OnboardingStateView header="Awaiting authorization" icon={<UserIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
         <p className="pb-2">To authorize this device, please click authorize and follow the steps</p>
-        <PrimaryButton href={state.url} text="Authorize" />
+        <PrimaryButton target="_blank" href={state.url} text="Authorize" />
       </OnboardingStateView>
     );
   } else if(state._type == "AwaitingSettings") {

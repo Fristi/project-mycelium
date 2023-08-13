@@ -9,6 +9,4 @@ object StationEvent {
 
   case class Watered(period: FiniteDuration) extends StationEvent
 
-
 }
-

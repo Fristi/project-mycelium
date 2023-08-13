@@ -9,7 +9,7 @@ use std::sync::{Arc, PoisonError, RwLock, RwLockWriteGuard};
 use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 
 
-use std::time::Duration;
+use std::time::{Duration};
 use bluedroid::gatt_server::{Characteristic, GLOBAL_GATT_SERVER, Profile, Service};
 use bluedroid::utilities::{AttributePermissions, BleUuid, CharacteristicProperties};
 use embedded_svc::http::client::Client;
@@ -19,8 +19,10 @@ use esp_idf_svc::eventloop::EspSystemEventLoop;
 use esp_idf_svc::http::client::EspHttpConnection;
 use esp_idf_svc::netif::{EspNetif, NetifStack};
 use esp_idf_svc::nvs::{EspDefaultNvs, EspDefaultNvsPartition};
+use esp_idf_svc::sntp::{EspSntp, SntpConf, SyncMode, SyncStatus};
+use esp_idf_svc::systime::EspSystemTime;
 use esp_idf_svc::wifi::EspWifi;
-use esp_idf_sys::{esp_get_free_heap_size, esp_get_free_internal_heap_size, EspError};
+use esp_idf_sys::*;
 use retry::delay::Fixed;
 use retry::retry;
 use serde_json::{from_slice, to_vec};
@@ -30,7 +32,7 @@ use thingbuf::mpsc::blocking::channel;
 use crate::auth0::{AuthError, TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
-use crate::onboarding::{OnboardingError, OnboardingHandler, OnboardingSettings, OnboardingState};
+use crate::onboarding::{OnboardingError, OnboardingSettings, OnboardingState};
 use crate::mycelium::{StationInsert, WateringSchedule};
 
 const SERVICE_UUID: &str = "00467768-6228-2272-4663-277478269000";
@@ -47,13 +49,7 @@ fn main() -> ! {
     let nvs_partition = EspDefaultNvsPartition::take().unwrap();
     let nvs = EspDefaultNvs::new(nvs_partition, "mycelium", true).unwrap();
     let kv = NvsKvStore::new(nvs);
-    //
-    // // let _sntp = EspSntp::new_default().unwrap();
-    let sysloop = EspSystemEventLoop::take().unwrap();
-    let peripherals = Peripherals::take().unwrap();
-    let modem = peripherals.modem;
-    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None).unwrap();
-    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
+
     let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
     let state_write = state.clone();
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
@@ -63,7 +59,19 @@ fn main() -> ! {
         ..Default::default()
     }).unwrap();
     let client = &mut Client::wrap(connection);
+    let sysloop = EspSystemEventLoop::take().unwrap();
+    let peripherals = Peripherals::take().unwrap();
+    let modem = peripherals.modem;
+    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None).unwrap();
+    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
+    // unsafe {
+    //     esp_sleep_enable_timer_wakeup(10000000000);
+    //     esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
+    //     esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_XTAL, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
+    //     esp_deep_sleep_disable_rom_logging();
+    //     esp_deep_sleep_start();
+    // }
 
     let (tx, rx) = channel::<Vec<u8>>(4);
 
@@ -138,6 +146,12 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
     let enriched_settings = wifi.connect(wifi_settings)?;
 
     kv.set("wifi_settings", enriched_settings)?;
+
+    let _sntp = EspSntp::new_default()?;
+
+    while _sntp.get_sync_status() != SyncStatus::Completed {
+        std::thread::sleep(Duration::from_secs(1));
+    }
 
     let resp = auth0::request_device_code(client)?;
 

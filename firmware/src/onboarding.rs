@@ -49,68 +49,6 @@ pub enum OnboardingError {
     Esp(EspError)
 }
 
-pub struct OnboardingHandler{
-    tx: Sender<OnboardingSettings, DefaultRecycle>,
-    handle: JoinHandle<()>
-}
-
-impl OnboardingHandler {
-
-    // pub fn new(wifi: EspMyceliumWifi, kv: NvsKvStore, auth: Auth0, state: Arc<RwLock<OnboardingState>>) -> OnboardingHandler {
-    pub fn new(tx: Sender<OnboardingSettings>, rx: Receiver<OnboardingSettings>) -> OnboardingHandler {
-
-        let handle = thread::spawn(move || {
-            if let Some(settings) = rx.recv() {
-                println!("Settings {:?}", settings);
-            }
-        });
-
-        // let _ = thread::spawn(move || {
-        //     if let Some(settings) = rx.recv() {
-        //         *state.write().unwrap() = OnboardingState::ProvisioningWifi;
-        //
-        //         let enriched_settings = wifi.connect(settings.wifi_settings()).unwrap();
-        //
-        //         kv.set("wifi_settings", enriched_settings).unwrap();
-        //
-        //         let resp = auth.request_device_code().unwrap();
-        //
-        //         *state.write().unwrap() = OnboardingState::AwaitingAuthorization { url: resp.verification_uri_complete };
-        //
-        //         // println!("Got response: {:?}", &resp);
-        //
-        //         let mut authenticated = false;
-        //
-        //         while authenticated == false {
-        //             match auth.poll_token(&resp.device_code) {
-        //                 Ok(TokenResult::Error { error }) => println!("Auth0 error {:?}", error),
-        //                 Ok(TokenResult::AccessToken { .. }) => println!("Skipping!"),
-        //                 Ok(TokenResult::Full { access_token, refresh_token, expires_in }) => {
-        //                     kv.set("refresh_token", refresh_token).unwrap();
-        //                     kv.set("access_token", access_token).unwrap();
-        //                     kv.set("expires_in", expires_in).unwrap();
-        //
-        //                     *state.write().unwrap() = OnboardingState::Complete;
-        //                     authenticated = true;
-        //                 },
-        //                 Err(err) => println!("Auth0 error {:?}", err),
-        //             }
-        //
-        //             std::thread::sleep(Duration::from_secs(5))
-        //         }
-        //     }
-        // });
-
-        return OnboardingHandler { tx, handle }
-    }
-
-
-    pub fn handle(&self, bytes: &Vec<u8>) {
-        let msg = from_slice(bytes).unwrap();
-        self.tx.send(msg).unwrap();
-    }
-}
-
 impl From<EspError> for OnboardingError {
     fn from(value: EspError) -> Self {
         OnboardingError::Esp(value)

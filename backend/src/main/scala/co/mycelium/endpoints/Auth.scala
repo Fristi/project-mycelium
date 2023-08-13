@@ -24,11 +24,17 @@ object Auth {
   def validate(jwt: String): IO[Either[Unit, AccessToken]] = jwt match {
     case s"$header.$_.$_" =>
       (for {
-        jwtHeader <- EitherT.fromOption[IO](Try(JwtCirce.parseHeader(JwtBase64.decodeString(header))).toOption, ())
+        jwtHeader <- EitherT.fromOption[IO](
+          Try(JwtCirce.parseHeader(JwtBase64.decodeString(header))).toOption,
+          ()
+        )
         kid <- EitherT.fromOption[IO](jwtHeader.keyId, ())
         jwk <- EitherT.fromOption[IO](Try(jwkProvider.get(kid)).toOption, ())
-        a <- EitherT.fromOption[IO](Jwt.decodeAll(jwt, jwk.getPublicKey).toOption, ())
-        token <- EitherT.fromOption[IO](io.circe.parser.decode[AccessToken](a._2.content).toOption, ())
+        a   <- EitherT.fromOption[IO](Jwt.decodeAll(jwt, jwk.getPublicKey).toOption, ())
+        token <- EitherT.fromOption[IO](
+          io.circe.parser.decode[AccessToken](a._2.content).toOption,
+          ()
+        )
       } yield token).value
 
     case _ =>

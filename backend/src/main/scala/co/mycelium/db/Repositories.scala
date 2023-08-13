@@ -12,8 +12,9 @@ trait Repositories[F[_]] {
 
 object DoobieRepositories extends Repositories[ConnectionIO] {
   override def stationLog: StationLogRepository[ConnectionIO] = DoobieStationLogRepository
-  override def stations: StationRepository[ConnectionIO] = DoobieStationRepository
-  override def measurements: StationMeasurementRepository[ConnectionIO] = DoobieStationMeasurementRepository
+  override def stations: StationRepository[ConnectionIO]      = DoobieStationRepository
+  override def measurements: StationMeasurementRepository[ConnectionIO] =
+    DoobieStationMeasurementRepository
 }
 
 object Repositories {
