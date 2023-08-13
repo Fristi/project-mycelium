@@ -9,7 +9,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import TextArea from "../components/TextArea";
 import { BleClient } from "@capacitor-community/bluetooth-le";
 import { useEffect, useState } from "react";
-import { CheckCircleIcon, ClockIcon, PlusCircleIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ClockIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
 
 type PlantAdd = z.infer<typeof AddPlantSchema>;
 
@@ -62,7 +62,7 @@ export const PlantProvisioning = () => {
       const stateBytes = await BleClient.read(deviceId, MYCELIUM_SERVICE, MYCELIUM_STATE_SERVICE);
       await BleClient.disconnect(deviceId);
       setState(decodeState(stateBytes));
-    }, 5000);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 

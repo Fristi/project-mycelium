@@ -9,17 +9,18 @@ use heapless::String;
 use thingbuf::mpsc::blocking::*;
 use thingbuf::recycling::DefaultRecycle;
 
-use crate::auth0::{Auth, Auth0, AuthError, TokenResult};
+use crate::auth0::{AuthError, TokenResult};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
+use crate::mycelium::MyceliumError;
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 
 #[derive(Deserialize, Clone, Default, Debug)]
 pub struct OnboardingSettings {
-    name: String<255>,
-    location: String<255>,
-    description: String<255>,
-    wifi_ssid: String<32>,
-    wifi_password: String<64>
+    pub name: String<128>,
+    pub location: String<128>,
+    pub description: String<128>,
+    pub wifi_ssid: String<32>,
+    pub wifi_password: String<64>
 }
 
 impl OnboardingSettings {
@@ -43,6 +44,7 @@ pub enum OnboardingError {
     RwLock,
     Kv(KvStoreError),
     Auth(AuthError),
+    Mycelium(MyceliumError),
     Json(serde_json::Error),
     Esp(EspError)
 }
@@ -118,6 +120,12 @@ impl From<EspError> for OnboardingError {
 impl From<serde_json::Error> for OnboardingError {
     fn from(value: serde_json::Error) -> Self {
         OnboardingError::Json(value)
+    }
+}
+
+impl From<MyceliumError> for OnboardingError {
+    fn from(value: MyceliumError) -> Self {
+        OnboardingError::Mycelium(value)
     }
 }
 

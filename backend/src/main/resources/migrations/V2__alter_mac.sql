@@ -1,0 +1,1 @@
+alter table stations alter column mac_addr TYPE varchar;

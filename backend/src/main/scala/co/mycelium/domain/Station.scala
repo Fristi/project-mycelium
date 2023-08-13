@@ -5,7 +5,7 @@ import java.util.UUID
 
 final case class Station(
                           id: UUID,
-                          mac: Array[Byte],
+                          mac: String,
                           name: String,
                           location: String,
                           description: String,

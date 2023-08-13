@@ -64,21 +64,23 @@ impl MyceliumWifi for EspMyceliumWifi {
         wifi.start()?;
 
         let enriched_settings = if settings.channel.is_none() && settings.bssid.is_none() {
-            info!("Searching for WiFi network {}", settings.ssid);
+            println!("Searching for WiFi network {}", settings.ssid);
 
             let ap_infos = wifi.scan()?;
             let ours = ap_infos.into_iter().find(|a| a.ssid.eq(&settings.ssid));
 
             if let Some(ours) = ours {
-                info!("Found configured access point {} on channel {}", settings.ssid, ours.channel);
+                println!("Found configured access point {} on channel {}", settings.ssid, ours.channel);
                 Ok(MyceliumWifiSettings { channel: Some(ours.channel), bssid: Some(ours.bssid), ..settings })
             } else {
-                info!("Configured access point {} not found during scanning, will go with unknown channel", settings.ssid);
+                println!("Configured access point {} not found during scanning, will go with unknown channel", settings.ssid);
                 Ok(settings)
             }
         } else {
             Ok(settings)
         }?;
+
+
         let conf = Configuration::Client(ClientConfiguration {
             ssid: enriched_settings.ssid.clone(),
             password: enriched_settings.password.clone(),
@@ -88,9 +90,22 @@ impl MyceliumWifi for EspMyceliumWifi {
             ..Default::default()
         });
 
+        println!("Setting WiFi settings");
+
         wifi.set_configuration(&conf)?;
-        wifi.connect()?;
+
+        println!("Connecting to WiFi");
+
+        wifi.connect().map_err(|err| {
+            println!("Error while connecting to WiFi: {:?}", err);
+            err
+        })?;
+
+        println!("Connected to WiFi, waiting netif to be up");
+
         wifi.wait_netif_up()?;
+
+        println!("WiFi netif is up");
 
         Ok(enriched_settings.clone())
     }

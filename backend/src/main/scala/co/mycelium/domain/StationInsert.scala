@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 final case class StationInsert(
-                                mac: Array[Byte],
+                                mac: String,
                                 name: String,
                                 location: String,
                                 description: String,
