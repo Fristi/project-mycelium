@@ -56,7 +56,7 @@ object Stations extends TapirSchemas {
       val created = Instant.now()
       val station = insert.toStation(id, created, at.sub)
 
-      repos.stations.insert(station, created).as(Right(id))
+      repos.stations.insert(station, created).map(Right(_))
     }
 
     val delete =
