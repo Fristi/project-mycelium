@@ -23,7 +23,7 @@ object Stations extends TapirSchemas {
     val stations = base.in("stations")
 
     val list = stations.get.out(jsonBody[List[Station]])
-    val add  = stations.post.in(jsonBody[StationInsert])
+    val add  = stations.post.in(jsonBody[StationInsert]).out(jsonBody[UUID])
     val details = stations.get
       .in(path[UUID]("stationId"))
       .in(query[Option[MeasurementPeriod]]("period"))
@@ -50,11 +50,13 @@ object Stations extends TapirSchemas {
 
     val list =
       endpoints.list.serverLogic(at => _ => repos.stations.listByUserId(at.sub).map(Right(_)))
+
     val add = endpoints.add.serverLogic { at => insert =>
       val id      = UUID.randomUUID()
       val created = Instant.now()
+      val station = insert.toStation(id, created, at.sub)
 
-      repos.stations.insert(insert.toStation(id, created, at.sub), created).as(Right(()))
+      repos.stations.insert(station, created).as(Right(id))
     }
 
     val delete =

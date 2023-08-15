@@ -27,12 +27,13 @@ esp-idf-svc = { version = "0.46.0" }
 esp-idf-hal = { version = "0.41.2" }
 embedded-svc = { version = "0.25.3"  }
 bluedroid = { git = "https://github.com/Fristi/bluedroid.git", branch = "updated-dependencies" }
-heapless = "0.7.16"
+heapless = { version = "0.7.16", features = ["serde"] }
 num_enum = "0.6.1"
 serde = "1.0.164"
 serde_json = "1.0.104"
 thingbuf = { version = "0.1.4", features = ["static"] }
 retry = "2.0.0"
+uuid = { version = "1.4.1", features = ["serde"] }
 
 [build-dependencies]
 embuild = "0.31.2"

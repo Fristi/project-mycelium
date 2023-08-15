@@ -147,6 +147,8 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
 
     kv.set("wifi_settings", enriched_settings)?;
 
+    *state_write.write()? = OnboardingState::SynchronizingTime;
+
     let _sntp = EspSntp::new_default()?;
 
     while _sntp.get_sync_status() != SyncStatus::Completed {
@@ -172,7 +174,7 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
                 let mac = netif.get_mac()?;
                 let mac_addr_str = heapless::String::from(format!("{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]).as_str());
 
-                mycelium::insert_plant(
+                let station_id = mycelium::insert_plant(
                     client,
                     &access_token,
                     &StationInsert {
@@ -184,9 +186,13 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
                     }
                 )?;
 
-                kv.set("refresh_token", refresh_token)?;
+                // let now = EspSystemTime {}.now();
+                // let expires_at = now.as_secs() + expires_in;
+
+                kv.set("station_id", station_id)?;
                 kv.set("access_token", access_token.clone())?;
-                kv.set("expires_in", expires_in)?;
+                kv.set("refresh_token", refresh_token)?;
+                // kv.set("expires_at", expires_at)?;
 
                 *state_write.write()? = OnboardingState::Complete;
                 authenticated = true;

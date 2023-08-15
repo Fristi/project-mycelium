@@ -1,42 +1,43 @@
 use std::str::Utf8Error;
+use std::string::FromUtf8Error;
 
 use embedded_svc::http::client::Client;
 use embedded_svc::io::Write;
 use esp_idf_svc::errors::EspIOError;
 use esp_idf_svc::http::client::EspHttpConnection;
-use heapless::String;
 use serde::{Serialize};
 use serde::de::DeserializeOwned;
 use serde_json::{from_str};
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub enum MyceliumError {
     Json(serde_json::Error),
-    String(Utf8Error),
+    String(FromUtf8Error),
     IO(EspIOError),
-    UnexpectedResponse { status: u16, response: [u8; 1536] }
+    UnexpectedResponse { status: u16 }
 }
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "_type")]
 pub enum WateringSchedule {
     #[serde(rename_all = "camelCase")]
-    Interval { schedule: String<16>, period: String<30> },
+    Interval { schedule: heapless::String<16>, period: heapless::String<30> },
     #[serde(rename_all = "camelCase")]
-    Threshold { below_soil_pf: u32, period: String<30> },
+    Threshold { below_soil_pf: u32, period: heapless::String<30> },
 }
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StationInsert {
-    pub mac: String<17>,
-    pub name: String<128>,
-    pub location: String<128>,
-    pub description: String<128>,
+    pub mac: heapless::String<17>,
+    pub name: heapless::String<128>,
+    pub location: heapless::String<128>,
+    pub description: heapless::String<128>,
     pub watering_schedule: WateringSchedule
 }
 
-pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &String<756>, insert: &StationInsert) -> Result<(), MyceliumError> {
+pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &heapless::String<756>, insert: &StationInsert) -> Result<Uuid, MyceliumError> {
 
     let payload_vec = serde_json::to_vec(&insert)?;
     let payload = payload_vec.as_slice();
@@ -57,21 +58,23 @@ pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &Strin
     let response = &mut request.submit()?;
 
     if response.status() == 200 {
-        Ok(())
-    } else {
         let (_, body) = response.split();
-        let mut buf = [0u8; 1536];
+        let mut buf = [0u8; 64];
         embedded_svc::io::Read::read(body, &mut buf)?;
-        Err(MyceliumError::UnexpectedResponse { status: response.status(), response: buf })
+        let contents = String::from_utf8(buf.to_vec())?;
+        let uuid = from_str::<Uuid>(contents.trim_matches(char::from(0)))?;
+
+        Ok(uuid)
+    } else {
+        Err(MyceliumError::UnexpectedResponse { status: response.status() })
     }
 }
 
-impl From<Utf8Error> for MyceliumError {
-    fn from(value: Utf8Error) -> Self {
+impl From<FromUtf8Error> for MyceliumError {
+    fn from(value: FromUtf8Error) -> Self {
         MyceliumError::String(value)
     }
 }
-
 impl From<EspIOError> for MyceliumError {
     fn from(value: EspIOError) -> Self {
         MyceliumError::IO(value)

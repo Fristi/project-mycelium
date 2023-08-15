@@ -13,7 +13,7 @@ import java.time.Instant
 import java.util.UUID
 
 trait StationRepository[F[_]] {
-  def insert(station: Station, on: Instant): F[Int]
+  def insert(station: Station, on: Instant): F[UUID]
   def listByUserId(userId: String): F[List[Station]]
   def findById(id: UUID, userId: String): F[Option[Station]]
   def delete(id: UUID, userId: String): F[Int]
@@ -25,14 +25,15 @@ object StationRepository {
 }
 
 object DoobieStationRepository extends StationRepository[ConnectionIO] {
-  def insert(station: Station, on: Instant): ConnectionIO[Int] = {
+  def insert(station: Station, on: Instant): ConnectionIO[UUID] = {
 
     def insertIntoStations =
-      sql"INSERT INTO stations (id, mac_addr, name, location, description, user_id, watering_schedule, created) VALUES (${station.id}, ${station.mac}, ${station.name}, ${station.location}, ${station.description}, ${station.userId}, ${station.wateringSchedule}, $on) on conflict on constraint unique_mac do update set updated = now(), name = excluded.name, description = excluded.description, location = excluded.location, user_id = excluded.user_id, watering_schedule = excluded.watering_schedule".update.run
+      sql"INSERT INTO stations (id, mac_addr, name, location, description, user_id, watering_schedule, created) VALUES (${station.id}, ${station.mac}, ${station.name}, ${station.location}, ${station.description}, ${station.userId}, ${station.wateringSchedule}, $on) on conflict on constraint unique_mac do update set updated = now(), name = excluded.name, description = excluded.description, location = excluded.location, user_id = excluded.user_id, watering_schedule = excluded.watering_schedule returning id".query[UUID]
 
-    insertIntoStations <* DoobieStationLogRepository.insert(
-      StationLog(station.id, on, StationEvent.ScheduleChanged(station.wateringSchedule))
-    )
+    for {
+      id <- insertIntoStations.unique
+      _ <- DoobieStationLogRepository.insert(StationLog(id, on, StationEvent.ScheduleChanged(station.wateringSchedule)))
+    } yield id
   }
 
   def listByUserId(userId: String): ConnectionIO[List[Station]] =

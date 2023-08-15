@@ -9,17 +9,18 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import TextArea from "../components/TextArea";
 import { BleClient } from "@capacitor-community/bluetooth-le";
 import { useEffect, useState } from "react";
-import { CheckCircleIcon, ClockIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ClockIcon, ExclamationCircleIcon, PauseCircleIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
 
 type PlantAdd = z.infer<typeof AddPlantSchema>;
 
 type OnboardingStateAwaitingSettings = { _type: "AwaitingSettings" };
 type OnboardingStateProvisioningWifi = { _type: "ProvisioningWifi" };
+type OnboardingStateSynchronizingTime = { _type: "SynchronizingTime" };
 type OnboardingStateComplete = { _type: "Complete" };
 type OnboardingStateAwaitingAuthorization = { _type: "AwaitingAuthorization", url: string }
 type OnboardingStateFailed = { _type: "Failed", error: string }
 
-type OnboardingState = OnboardingStateAwaitingSettings | OnboardingStateProvisioningWifi | OnboardingStateComplete | OnboardingStateAwaitingAuthorization | OnboardingStateFailed;
+type OnboardingState = OnboardingStateAwaitingSettings | OnboardingStateProvisioningWifi | OnboardingStateSynchronizingTime | OnboardingStateComplete | OnboardingStateAwaitingAuthorization | OnboardingStateFailed;
 
 
 const MYCELIUM_SERVICE = "00467768-6228-2272-4663-277478269000";
@@ -75,7 +76,7 @@ export const PlantProvisioning = () => {
     );
   } else if(state._type == "AwaitingSettings") {
     return (
-      <OnboardingStateView header="Awaiting for settings" icon={<ClockIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
+      <OnboardingStateView header="Awaiting for settings" icon={<PauseCircleIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
         <p className="pb-2">Awaiting for settings to be entered</p>
       </OnboardingStateView>
     );
@@ -85,9 +86,15 @@ export const PlantProvisioning = () => {
         <p>The device is setting up a internet connection via the WiFi network</p>
       </OnboardingStateView>
     );
+  } else if(state._type == "SynchronizingTime") {
+    return (
+      <OnboardingStateView header="Synchronzing time" icon={<ClockIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
+        <p>Synchronizing the time on this device via SNTP</p>
+      </OnboardingStateView>
+    );
   } else if(state._type == "Failed") {
     return (
-      <OnboardingStateView header="Internal error" icon={<></>}>
+      <OnboardingStateView header="Internal error" icon={<ExclamationCircleIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
         <p className="pb-2">An error occurred: <i>{state.error}</i></p>
         <PrimaryButton href="/" text="Overview" />
 

@@ -34,6 +34,7 @@ impl OnboardingSettings {
 pub enum OnboardingState {
     AwaitingSettings,
     ProvisioningWifi,
+    SynchronizingTime,
     Failed { error: String<256> },
     AwaitingAuthorization { url: String<255> },
     Complete
