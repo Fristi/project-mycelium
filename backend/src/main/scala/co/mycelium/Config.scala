@@ -3,7 +3,13 @@ package co.mycelium
 import ciris._
 import cats.implicits._
 
-final case class DbConfig(host: String, port: Int, username: String, password: Secret[String], database: String)
+final case class DbConfig(
+    host: String,
+    port: Int,
+    username: String,
+    password: Secret[String],
+    database: String
+)
 
 final case class S3BlobConfig(host: String, accessKey: String, secretKey: Secret[String])
 

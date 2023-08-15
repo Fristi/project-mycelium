@@ -16,10 +16,12 @@ import io.circe.syntax._
 package object db {
 
   implicit val putWateringSchedule: Put[WateringSchedule] = Put[Json].contramap(_.asJson)
-  implicit val getWateringSchedule: Get[WateringSchedule] = Get[Json].temap(_.as[WateringSchedule].leftMap(_.message))
+  implicit val getWateringSchedule: Get[WateringSchedule] =
+    Get[Json].temap(_.as[WateringSchedule].leftMap(_.message))
 
   implicit val putStationEvent: Put[StationEvent] = Put[Json].contramap(_.asJson)
-  implicit val getStationEvent: Get[StationEvent] = Get[Json].temap(_.as[StationEvent].leftMap(_.message))
+  implicit val getStationEvent: Get[StationEvent] =
+    Get[Json].temap(_.as[StationEvent].leftMap(_.message))
 
   implicit val putCron: Put[CronExpr] = Put[String].contramap(_.toString)
   implicit val getCron: Get[CronExpr] = Get[String].temap(x => Cron.parse(x).leftMap(_.getMessage))

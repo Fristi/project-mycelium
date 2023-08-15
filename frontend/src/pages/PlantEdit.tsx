@@ -1,7 +1,7 @@
 import { FormikProvider, useFormik } from "formik";
 import { getStationDetails, updateStation } from "../api";
 import { useParams } from "react-router-dom";
-import * as yup from "yup";
+import * as z from "zod";
 import InputField from "../components/InputField";
 import TextArea from "../components/TextArea";
 import { useAuth } from "../AuthContext";
@@ -10,16 +10,10 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TertiaryButton } from "../components/TertiaryButton";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "react-query";
+import { toFormikValidationSchema } from "zod-formik-adapter";
+import { AttributeSchema } from "../schemas";
 
-const attributeSchema = yup.object({
-  name: yup.string().required("Name is required"),
-  description: yup.string().required("Description is required"),
-  location: yup.string().required("Location is required"),
-});
-
-interface AttributeUpdate extends yup.InferType<typeof attributeSchema> {}
-
-
+type AttributeUpdate = z.infer<typeof AttributeSchema>;
 
 export const PlantEdit = () => {
   const { plantId } = useParams();
@@ -32,13 +26,13 @@ export const PlantEdit = () => {
     const form = useFormik({
       enableReinitialize: true,
       initialValues: data?.station ?? { name: "", location: "", description: "" },
-      validationSchema: attributeSchema,
+      validationSchema: toFormikValidationSchema(AttributeSchema),
       onSubmit: (values: AttributeUpdate) => {
         queryClient.invalidateQueries("plants");
         updateStation(plantId ?? "", values)(auth.token ?? "").then(() => navigate(`/plants/${plantId}`));
       },
     });
-  
+
     return (
       <div className="mt-5 lg:mt-6 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
@@ -50,7 +44,7 @@ export const PlantEdit = () => {
                     <h3 className="text-lg leading-6 font-medium text-gray-900">Plant basics</h3>
                     <p className="mt-1 max-w-2xl text-sm text-gray-500">These are basics for your plant</p>
                   </div>
-  
+
                   <InputField
                     type="text"
                     id="name"
@@ -61,7 +55,7 @@ export const PlantEdit = () => {
                     onChange={form.handleChange}
                     helperText="Name is required"
                   />
-  
+
                   <InputField
                     type="text"
                     id="location"
@@ -72,7 +66,7 @@ export const PlantEdit = () => {
                     onChange={form.handleChange}
                     helperText="Location is required"
                   />
-  
+
                   <TextArea
                     id="description"
                     name="description"
@@ -82,7 +76,7 @@ export const PlantEdit = () => {
                     onChange={form.handleChange}
                     helperText="Description is required"
                   />
-  
+
                   <div className="pt-5">
                     <div className="flex justify-end">
                       <TertiaryButton text="Cancel" href={`/plants/${plantId}`} />
@@ -96,12 +90,11 @@ export const PlantEdit = () => {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <>
       <BasicSettings />
     </>
-  )
-
+  );
 };

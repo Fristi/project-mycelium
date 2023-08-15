@@ -31,7 +31,7 @@ export const AuthContext: React.FC<Props> = ({ children }) => {
     })();
   }, [getAccessTokenSilently, isAuthenticated]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || token == null) {
     return (
       <p>
         You should{" "}
@@ -43,7 +43,7 @@ export const AuthContext: React.FC<Props> = ({ children }) => {
     );
   }
 
-  if (isLoading || token == null) {
+  if (isLoading) {
     return <p>Loading</p>;
   }
 

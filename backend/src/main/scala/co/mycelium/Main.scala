@@ -37,29 +37,29 @@ object Main extends IOApp {
   def httpApp(repositories: Repositories[IO]): HttpApp[IO] = {
 
     val server = Router(
-      "api" -> Stations.routes(repositories),
+      "api"    -> Stations.routes(repositories),
       "avatar" -> Avatar.routes
     )
-    val files = fileService[IO](FileService.Config("."))
+    val files  = fileService[IO](FileService.Config("."))
     val routes = (server <+> files).orNotFound
 
-    CORS.policy
-      .withAllowOriginAll
+    CORS.policy.withAllowOriginAll
       .withAllowCredentials(false)
       .apply(routes)
   }
 
-  private def errorHandling(route: Kleisli[IO, Request[IO], Response[IO]]) = ErrorHandling.Recover.total(
-    ErrorAction.log(
-      route,
-      messageFailureLogAction = (t, msg) =>
-        IO.println(msg) >>
-          IO.println(t),
-      serviceErrorLogAction = (t, msg) =>
-        IO.println(msg) >>
-          IO.delay(t.printStackTrace())
+  private def errorHandling(route: Kleisli[IO, Request[IO], Response[IO]]) =
+    ErrorHandling.Recover.total(
+      ErrorAction.log(
+        route,
+        messageFailureLogAction = (t, msg) =>
+          IO.println(msg) >>
+            IO.println(t),
+        serviceErrorLogAction = (t, msg) =>
+          IO.println(msg) >>
+            IO.delay(t.printStackTrace())
+      )
     )
-  )
 
 //  val overrideConfiguration: ClientOverrideConfiguration =
 //    ClientOverrideConfiguration.builder()
@@ -99,7 +99,7 @@ object Main extends IOApp {
   val app: Resource[IO, Server] =
     for {
       cfg <- Resource.eval(AppConfig.config.load[IO])
-      tx <- Transactors.pg[IO](cfg.db)
+      tx  <- Transactors.pg[IO](cfg.db)
 //      s3Client = client(cfg.blob)
 //      _ <- Resource.eval(createBucket(s3Client))
 //      s3 <- Resource.eval(IO.fromOption(S3Store.builder[IO](s3Client).build.toOption)(new Throwable("Wat?")))

@@ -4,12 +4,12 @@ import java.time.Instant
 import java.util.UUID
 
 final case class StationInsert(
-                                mac: Array[Byte],
-                                name: String,
-                                location: String,
-                                description: String,
-                                wateringSchedule: WateringSchedule
-                              ) {
+    mac: String,
+    name: String,
+    location: String,
+    description: String,
+    wateringSchedule: WateringSchedule
+) {
   def toStation(id: UUID, created: Instant, userId: String): Station =
     Station(
       id = id,
