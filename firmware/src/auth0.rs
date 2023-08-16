@@ -82,8 +82,8 @@ fn post_form<T, const N : usize>(client: &mut Client<EspHttpConnection>, url: &s
     Ok(res)
 }
 
-pub fn refresh_token(client: &mut Client<EspHttpConnection>, refresh_token: &str) -> Result<TokenResult, AuthError> {
-    post_form(client,&format!("https://{}/oauth/token", DOMAIN), [("client_id", CLIENT_ID), ("client_secret", CLIENT_SECRET), ("grant_type", "refresh_token"), ("refresh_token", refresh_token)])
+pub fn refresh_token(client: &mut Client<EspHttpConnection>, refresh_token: &String<128>) -> Result<TokenResult, AuthError> {
+    post_form(client,&format!("https://{}/oauth/token", DOMAIN), [("client_id", CLIENT_ID), ("client_secret", CLIENT_SECRET), ("grant_type", "refresh_token"), ("refresh_token", refresh_token.as_str())])
 }
 
 pub fn poll_token(client: &mut Client<EspHttpConnection>, device_code: &str) -> Result<TokenResult, AuthError> {

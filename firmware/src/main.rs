@@ -14,8 +14,10 @@ use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, alway
 use std::time::{Duration};
 use bluedroid::gatt_server::{Characteristic, GLOBAL_GATT_SERVER, Profile, Service};
 use bluedroid::utilities::{AttributePermissions, BleUuid, CharacteristicProperties};
+use chrono::{NaiveDateTime, SecondsFormat, TimeZone, Utc};
 use embedded_svc::http::client::Client;
 use embedded_svc::http::headers;
+use esp_idf_hal::modem::Modem;
 use esp_idf_hal::prelude::*;
 use esp_idf_svc::eventloop::EspSystemEventLoop;
 use esp_idf_svc::http::client::EspHttpConnection;
@@ -34,9 +36,9 @@ use crate::auth0::{AuthError, TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
 use crate::onboarding::{OnboardingError, OnboardingCommand, OnboardingState, OnboardingSettings};
-use crate::mycelium::{StationInsert, WateringSchedule};
+use crate::mycelium::{StationInsert, StationMeasurement, WateringSchedule};
 use crate::settings::FlashState;
-use crate::tokens::TokenWallet;
+use crate::tokens::{TokenWallet, TokenWalletError};
 
 fn main() -> ! {
     // It is necessary to call this function once. Otherwise some patches to the runtime
@@ -57,7 +59,28 @@ fn main() -> ! {
     }
 }
 
-fn measure(flash_state: &FlashState) -> Result<(), OnboardingError> {
+fn extract_wallet(client: &mut Client<EspHttpConnection>, flash_state: &FlashState) -> Result<TokenWallet, OnboardingError>  {
+    let wallet = flash_state.get_token_wallet()?;
+    let needs_refresh = wallet.needs_refresh()?;
+
+    if needs_refresh {
+        let resp = auth0::refresh_token(client, &wallet.refresh_token)?;
+
+        match resp {
+            TokenResult::Error { error } => println!("Token error: {:?}", error),
+            TokenResult::AccessToken { access_token, expires_in } => {
+                let new_wallet = wallet.update(access_token, expires_in)?;
+                flash_state.set_token_wallet(new_wallet.clone())?;
+                return Ok(new_wallet.clone())
+            }
+            _ => println!("Ignoring")
+        }
+    }
+
+    Ok(wallet)
+}
+
+fn measure(flash_state: &FlashState, wifi: &EspMyceliumWifi) -> Result<(), OnboardingError> {
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
         use_global_ca_store: true,
         buffer_size_tx: Some(1536),
@@ -65,38 +88,39 @@ fn measure(flash_state: &FlashState) -> Result<(), OnboardingError> {
         ..Default::default()
     })?;
     let client = &mut Client::wrap(connection);
-    let sysloop = EspSystemEventLoop::take()?;
-    let peripherals = Peripherals::take().unwrap();
-    let modem = peripherals.modem;
-    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None)?;
-    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
     let wifi_settings = flash_state.get_wifi_settings()?;
     wifi.connect(wifi_settings)?;
-    let wallet = flash_state.get_token_wallet()?;
+    let wallet = extract_wallet(client, &flash_state)?;
     let station_id = flash_state.get_station_id()?;
-    let needs_refresh = wallet.needs_refresh()?;
+    let now = EspSystemTime{}.now().as_secs();
+    let rfc3339 = timestamp_to_rfc3389(now).ok_or(OnboardingError::TokenWallet(TokenWalletError::TimeSyncTimeout))?;
 
-    if needs_refresh {
-        println!("Needs refresh")
-    }
-
-    mycelium::check_in(client, &wallet.access_token, &station_id, vec![])?;
+    mycelium::check_in(client, &wallet.access_token, &station_id, vec![StationMeasurement::random(rfc3339)])?;
 
     Ok(())
 }
 
 fn operational(flash_state: &FlashState) -> ! {
 
-    let result = retry(Fixed::from_millis(1000).take(5), || {
-        measure(&flash_state)
+    let peripherals = Peripherals::take().unwrap();
+    let modem = peripherals.modem;
+    let sysloop = EspSystemEventLoop::take().unwrap();
+    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None).unwrap();
+    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
+
+    let result = retry(Fixed::from_millis(1000).take(2), || {
+        measure(&flash_state, &wifi)
     });
 
     match result {
         Ok(_) => {
             flash_state.reset_errors().unwrap();
         },
-        Err(err) => { flash_state.increment_errors().unwrap() }
+        Err(err) => {
+            println!("Error: {:?}", err);
+            flash_state.increment_errors().unwrap()
+        }
     }
 
     if flash_state.get_num_errors().unwrap() == 10 {
@@ -106,7 +130,7 @@ fn operational(flash_state: &FlashState) -> ! {
     unsafe {
         let second = 1000000000;
         let minute = 60 * second;
-        esp_sleep_enable_timer_wakeup(5 * minute);
+        esp_sleep_enable_timer_wakeup(60 * minute);
         esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
         esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_XTAL, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
         esp_deep_sleep_disable_rom_logging();
@@ -118,6 +142,11 @@ fn onboarding(flash_state: &FlashState) -> ! {
     let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
     let state_write = state.clone();
     let (tx, rx) = channel::<Vec<u8>>(4);
+    let peripherals = Peripherals::take().unwrap();
+    let modem = peripherals.modem;
+    let sysloop = EspSystemEventLoop::take().unwrap();
+    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None).unwrap();
+    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
     let current_state = Characteristic::new(BleUuid::from_uuid128_string("00467768-6228-2272-4663-277478269001"))
         .name("Current state")
@@ -162,14 +191,14 @@ fn onboarding(flash_state: &FlashState) -> ! {
 
     loop {
         if let Some(bytes) = rx.recv() {
-            process_message(&flash_state, &state_write, &bytes);
+            process_message(&flash_state, &state_write, &wifi, &bytes);
         }
 
         std::thread::sleep(Duration::from_secs(5));
     }
 }
 
-fn process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, settings: &OnboardingSettings) -> Result<(), OnboardingError> {
+fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, wifi: &EspMyceliumWifi, settings: &OnboardingSettings) -> Result<(), OnboardingError> {
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
         use_global_ca_store: true,
         buffer_size_tx: Some(1536),
@@ -177,11 +206,6 @@ fn process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboard
         ..Default::default()
     })?;
     let client = &mut Client::wrap(connection);
-    let sysloop = EspSystemEventLoop::take()?;
-    let peripherals = Peripherals::take().unwrap();
-    let modem = peripherals.modem;
-    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None)?;
-    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
     *state_write.write()? = OnboardingState::ProvisioningWifi;
 
@@ -234,11 +258,12 @@ fn process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboard
     Ok(())
 }
 
-fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, bytes: &[u8]) {
+fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, wifi: &EspMyceliumWifi, bytes: &[u8]) {
+
     match from_slice::<OnboardingCommand>(&bytes)  {
         Ok(OnboardingCommand::Initialize { settings }) => {
             let result = retry(Fixed::from_millis(10).take(5), || {
-                process_initialize(&flash_state, &state_write, &settings)
+                process_initialize(&flash_state, &state_write, &wifi, &settings)
             });
 
             match result {
@@ -264,4 +289,10 @@ fn get_mac_addr() -> Result<heapless::String<17>, OnboardingError> {
     let mac_addr_str = heapless::String::from(format!("{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]).as_str());
 
     Ok(mac_addr_str)
+}
+
+// returns a rfc3389 - 2018-01-26T18:30:09Z
+fn timestamp_to_rfc3389(timestamp: u64) -> Option<String> {
+    NaiveDateTime::from_timestamp_opt(timestamp as i64, 0)
+        .map(|x| Utc.from_utc_datetime(&x).to_rfc3339_opts(SecondsFormat::Secs, true))
 }

@@ -6,20 +6,25 @@ use esp_idf_sys::EspError;
 use heapless::String;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TokenWallet {
     pub access_token: String<756>,
-    refresh_token: String<128>,
+    pub refresh_token: String<128>,
     expires_at: u64
 }
 
 impl TokenWallet {
     pub fn needs_refresh(&self) -> Result<bool, TokenWalletError> {
         let now = get_time()?;
+        println!("now: {}, expires_at: {}", now, self.expires_at);
         Ok(now > self.expires_at)
     }
 
-    pub fn new(access_token: String<756>,  refresh_token: String<128>, expires_in: u64) -> Result<TokenWallet, TokenWalletError> {
+    pub fn update(self, access_token: String<756>, expires_in: u64)  -> Result<TokenWallet, TokenWalletError> {
+        TokenWallet::new(access_token, self.refresh_token, expires_in)
+    }
+
+    pub fn new(access_token: String<756>, refresh_token: String<128>, expires_in: u64) -> Result<TokenWallet, TokenWalletError> {
         let now = get_time()?;
         Ok(TokenWallet { access_token, refresh_token, expires_at: now + expires_in })
     }
@@ -30,10 +35,10 @@ fn get_time() -> Result<u64, TokenWalletError> {
     let mut counter = 0;
 
     while sntp.get_sync_status() != SyncStatus::Completed {
-        if counter == 30 {
+        if counter == 300 {
             return Err(TokenWalletError::TimeSyncTimeout)
         }
-        std::thread::sleep(Duration::from_secs(1));
+        std::thread::sleep(Duration::from_millis(100));
         counter += 1;
     }
 

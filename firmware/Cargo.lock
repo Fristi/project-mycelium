@@ -946,6 +946,7 @@ name = "mycelium-firmware"
 version = "0.1.0"
 dependencies = [
  "bluedroid",
+ "chrono",
  "embedded-svc",
  "embuild",
  "esp-idf-hal",
@@ -954,6 +955,7 @@ dependencies = [
  "heapless",
  "log",
  "num_enum 0.6.1",
+ "rand",
  "retry",
  "serde",
  "serde_json",
