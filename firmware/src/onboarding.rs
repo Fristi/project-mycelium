@@ -12,6 +12,7 @@ use thingbuf::recycling::DefaultRecycle;
 use crate::auth0::{AuthError, TokenResult};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
 use crate::mycelium::MyceliumError;
+use crate::tokens::TokenWalletError;
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 
 #[derive(Deserialize, Clone, Default, Debug)]
@@ -29,12 +30,18 @@ impl OnboardingSettings {
     }
 }
 
+#[derive(Deserialize, Clone, Debug)]
+#[serde(tag = "_type")]
+pub enum OnboardingCommand {
+    Initialize { settings: OnboardingSettings },
+    Reboot
+}
+
 #[derive(Serialize, Debug, Clone)]
 #[serde(tag = "_type")]
 pub enum OnboardingState {
     AwaitingSettings,
     ProvisioningWifi,
-    SynchronizingTime,
     Failed { error: String<256> },
     AwaitingAuthorization { url: String<255> },
     Complete
@@ -45,6 +52,7 @@ pub enum OnboardingError {
     RwLock,
     Kv(KvStoreError),
     Auth(AuthError),
+    TokenWallet(TokenWalletError),
     Mycelium(MyceliumError),
     Json(serde_json::Error),
     Esp(EspError)
@@ -78,6 +86,10 @@ impl From<KvStoreError> for OnboardingError {
     fn from(value: KvStoreError) -> Self {
         OnboardingError::Kv(value)
     }
+}
+
+impl From<TokenWalletError> for OnboardingError {
+    fn from(value: TokenWalletError) -> Self { OnboardingError::TokenWallet(value) }
 }
 
 impl From<PoisonError<RwLockWriteGuard<'_, OnboardingState>>> for OnboardingError {

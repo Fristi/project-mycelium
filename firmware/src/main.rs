@@ -4,6 +4,8 @@ mod kv;
 mod onboarding;
 mod auth0;
 mod mycelium;
+mod settings;
+mod tokens;
 
 use std::sync::{Arc, PoisonError, RwLock, RwLockWriteGuard};
 use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
@@ -28,16 +30,13 @@ use retry::retry;
 use serde_json::{from_slice, to_vec};
 use thingbuf::mpsc::blocking::channel;
 
-
 use crate::auth0::{AuthError, TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
-use crate::onboarding::{OnboardingError, OnboardingSettings, OnboardingState};
+use crate::onboarding::{OnboardingError, OnboardingCommand, OnboardingState, OnboardingSettings};
 use crate::mycelium::{StationInsert, WateringSchedule};
-
-const SERVICE_UUID: &str = "00467768-6228-2272-4663-277478269000";
-const STATUS_UUID: &str = "00467768-6228-2272-4663-277478269001";
-const RPC_COMMAND_UUID: &str = "00467768-6228-2272-4663-277478269002";
+use crate::settings::FlashState;
+use crate::tokens::TokenWallet;
 
 fn main() -> ! {
     // It is necessary to call this function once. Otherwise some patches to the runtime
@@ -49,33 +48,78 @@ fn main() -> ! {
     let nvs_partition = EspDefaultNvsPartition::take().unwrap();
     let nvs = EspDefaultNvs::new(nvs_partition, "mycelium", true).unwrap();
     let kv = NvsKvStore::new(nvs);
+    let flash_state = FlashState::new(kv);
 
-    let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
-    let state_write = state.clone();
+    if flash_state.has_station_id().unwrap() {
+        operational(&flash_state)
+    } else {
+        onboarding(&flash_state)
+    }
+}
+
+fn measure(flash_state: &FlashState) -> Result<(), OnboardingError> {
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
         use_global_ca_store: true,
         buffer_size_tx: Some(1536),
         crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach),
         ..Default::default()
-    }).unwrap();
+    })?;
     let client = &mut Client::wrap(connection);
-    let sysloop = EspSystemEventLoop::take().unwrap();
+    let sysloop = EspSystemEventLoop::take()?;
     let peripherals = Peripherals::take().unwrap();
     let modem = peripherals.modem;
-    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None).unwrap();
+    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None)?;
     let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
-    // unsafe {
-    //     esp_sleep_enable_timer_wakeup(10000000000);
-    //     esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
-    //     esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_XTAL, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
-    //     esp_deep_sleep_disable_rom_logging();
-    //     esp_deep_sleep_start();
-    // }
+    let wifi_settings = flash_state.get_wifi_settings()?;
+    wifi.connect(wifi_settings)?;
+    let wallet = flash_state.get_token_wallet()?;
+    let station_id = flash_state.get_station_id()?;
+    let needs_refresh = wallet.needs_refresh()?;
 
+    if needs_refresh {
+        println!("Needs refresh")
+    }
+
+    mycelium::check_in(client, &wallet.access_token, &station_id, vec![])?;
+
+    Ok(())
+}
+
+fn operational(flash_state: &FlashState) -> ! {
+
+    let result = retry(Fixed::from_millis(1000).take(5), || {
+        measure(&flash_state)
+    });
+
+    match result {
+        Ok(_) => {
+            flash_state.reset_errors().unwrap();
+        },
+        Err(err) => { flash_state.increment_errors().unwrap() }
+    }
+
+    if flash_state.get_num_errors().unwrap() == 10 {
+        flash_state.erase_settings().unwrap();
+    }
+
+    unsafe {
+        let second = 1000000000;
+        let minute = 60 * second;
+        esp_sleep_enable_timer_wakeup(5 * minute);
+        esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
+        esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_XTAL, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
+        esp_deep_sleep_disable_rom_logging();
+        esp_deep_sleep_start();
+    }
+}
+
+fn onboarding(flash_state: &FlashState) -> ! {
+    let state = Arc::new(RwLock::new(OnboardingState::AwaitingSettings));
+    let state_write = state.clone();
     let (tx, rx) = channel::<Vec<u8>>(4);
 
-    let current_state = Characteristic::new(BleUuid::from_uuid128_string(STATUS_UUID))
+    let current_state = Characteristic::new(BleUuid::from_uuid128_string("00467768-6228-2272-4663-277478269001"))
         .name("Current state")
         .permissions(AttributePermissions::new().read())
         .properties(CharacteristicProperties::new().read().notify())
@@ -86,7 +130,7 @@ fn main() -> ! {
         })
         .build();
 
-    let rpc_command = Characteristic::new(BleUuid::from_uuid128_string(RPC_COMMAND_UUID))
+    let rpc_command = Characteristic::new(BleUuid::from_uuid128_string("00467768-6228-2272-4663-277478269002"))
         .name("RPC command handler")
         .permissions(AttributePermissions::new().write().read())
         .properties(CharacteristicProperties::new().write().read())
@@ -95,7 +139,7 @@ fn main() -> ! {
         .show_name()
         .build();
 
-    let service = Service::new(BleUuid::from_uuid128_string(SERVICE_UUID))
+    let service = Service::new(BleUuid::from_uuid128_string("00467768-6228-2272-4663-277478269000"))
         .name("Mycelium onboarding service")
         .primary()
         .characteristic(&rpc_command)
@@ -118,42 +162,33 @@ fn main() -> ! {
 
     loop {
         if let Some(bytes) = rx.recv() {
-
-
-            let result = retry(Fixed::from_millis(10).take(5), || {
-                process_message(client, &wifi, &kv, &state_write, &bytes)
-            });
-
-            match result {
-                Ok(_) => (),
-                Err(err) => {
-                    let error = format!("{:?}", err);
-                    *state_write.write().unwrap() = OnboardingState::Failed { error: heapless::String::from(error.as_str()) }
-                }
-            }
+            process_message(&flash_state, &state_write, &bytes);
         }
 
         std::thread::sleep(Duration::from_secs(5));
     }
 }
 
-fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWifi, kv: &NvsKvStore, state_write: &Arc<RwLock<OnboardingState>>, bytes: &[u8]) -> Result<(), OnboardingError> {
-    let settings = from_slice::<OnboardingSettings>(&bytes)?;
+fn process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, settings: &OnboardingSettings) -> Result<(), OnboardingError> {
+    let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
+        use_global_ca_store: true,
+        buffer_size_tx: Some(1536),
+        crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach),
+        ..Default::default()
+    })?;
+    let client = &mut Client::wrap(connection);
+    let sysloop = EspSystemEventLoop::take()?;
+    let peripherals = Peripherals::take().unwrap();
+    let modem = peripherals.modem;
+    let esp_wifi = EspWifi::new(modem, sysloop.clone(), None)?;
+    let wifi = EspMyceliumWifi::new(sysloop, esp_wifi);
 
     *state_write.write()? = OnboardingState::ProvisioningWifi;
 
-    let wifi_settings = kv.get("wifi_settings")?.filter(|x: &MyceliumWifiSettings| x.ssid == settings.wifi_ssid).unwrap_or(settings.clone().wifi_settings());
+    let wifi_settings = flash_state.get_opt_wifi_settings()?.filter(|x: &MyceliumWifiSettings| x.ssid == settings.wifi_ssid).unwrap_or(settings.clone().wifi_settings());
     let enriched_settings = wifi.connect(wifi_settings)?;
 
-    kv.set("wifi_settings", enriched_settings)?;
-
-    *state_write.write()? = OnboardingState::SynchronizingTime;
-
-    let _sntp = EspSntp::new_default()?;
-
-    while _sntp.get_sync_status() != SyncStatus::Completed {
-        std::thread::sleep(Duration::from_secs(1));
-    }
+    flash_state.set_wifi_settings(enriched_settings)?;
 
     let resp = auth0::request_device_code(client)?;
 
@@ -169,11 +204,7 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
             Ok(TokenResult::Error { error }) => println!("Auth0 error {:?}", error),
             Ok(TokenResult::AccessToken { .. }) => println!("Skipping!"),
             Ok(TokenResult::Full { access_token, refresh_token, expires_in }) => {
-
-                let netif = EspNetif::new(NetifStack::Eth)?;
-                let mac = netif.get_mac()?;
-                let mac_addr_str = heapless::String::from(format!("{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]).as_str());
-
+                let mac_addr_str = get_mac_addr()?;
                 let station_id = mycelium::insert_plant(
                     client,
                     &access_token,
@@ -182,17 +213,14 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
                         name: settings.name.clone(),
                         location: settings.location.clone(),
                         description: settings.description.clone(),
-                        watering_schedule: WateringSchedule::Threshold { below_soil_pf: 1337, period: heapless::String::from("5 seconds") }
+                        watering_schedule: WateringSchedule::Threshold { below_soil_pf: 500, period: heapless::String::from("5 seconds") }
                     }
                 )?;
 
-                // let now = EspSystemTime {}.now();
-                // let expires_at = now.as_secs() + expires_in;
+                let wallet = TokenWallet::new(access_token, refresh_token, expires_in)?;
 
-                kv.set("station_id", station_id)?;
-                kv.set("access_token", access_token.clone())?;
-                kv.set("refresh_token", refresh_token)?;
-                // kv.set("expires_at", expires_at)?;
+                flash_state.set_token_wallet(wallet)?;
+                flash_state.set_station_id(station_id)?;
 
                 *state_write.write()? = OnboardingState::Complete;
                 authenticated = true;
@@ -203,7 +231,37 @@ fn process_message(client: &mut Client<EspHttpConnection>, wifi: &EspMyceliumWif
         std::thread::sleep(Duration::from_secs(5))
     }
 
-    println!("Done !!!");
-
     Ok(())
+}
+
+fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, bytes: &[u8]) {
+    match from_slice::<OnboardingCommand>(&bytes)  {
+        Ok(OnboardingCommand::Initialize { settings }) => {
+            let result = retry(Fixed::from_millis(10).take(5), || {
+                process_initialize(&flash_state, &state_write, &settings)
+            });
+
+            match result {
+                Ok(_) => (),
+                Err(err) => {
+                    let error = format!("{:?}", err);
+                    *state_write.write().unwrap() = OnboardingState::Failed { error: heapless::String::from(error.as_str()) }
+                }
+            }
+        },
+        Ok(OnboardingCommand::Reboot) => {
+            unsafe {
+                esp_restart();
+            }
+        },
+        Err(err) => println!("Command not recognized! {:?}", err)
+    }
+}
+
+fn get_mac_addr() -> Result<heapless::String<17>, OnboardingError> {
+    let netif = EspNetif::new(NetifStack::Eth)?;
+    let mac = netif.get_mac()?;
+    let mac_addr_str = heapless::String::from(format!("{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]).as_str());
+
+    Ok(mac_addr_str)
 }

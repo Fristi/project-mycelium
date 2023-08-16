@@ -27,6 +27,13 @@ const MYCELIUM_SERVICE = "00467768-6228-2272-4663-277478269000";
 const MYCELIUM_STATE_SERVICE = "00467768-6228-2272-4663-277478269001";
 const MYCELIUM_RPC_SERVICE = "00467768-6228-2272-4663-277478269002";
 
+const ExecuteCommand = async (deviceId: string, command: any) => {
+  await BleClient.connect(deviceId);
+  const byteArray = new TextEncoder().encode(JSON.stringify(command));
+  await BleClient.write(deviceId, MYCELIUM_SERVICE, MYCELIUM_RPC_SERVICE, new DataView(byteArray.buffer));
+  await BleClient.disconnect(deviceId);
+};
+
 type OnboardingStateViewProps = {
   icon: React.ReactNode,
   header: string
@@ -43,12 +50,14 @@ const OnboardingStateView: React.FC<OnboardingStateViewProps> = ({children, icon
   )
 }
 
+
 export const PlantProvisioning = () => {
   const { deviceId } = useParams();
 
   if(deviceId == null) return (<p>Invalid device id</p>)
 
   const [state, setState] = useState<OnboardingState>({ _type: "AwaitingSettings" });
+  const navigate = useNavigate();
 
   const decodeState = (data: DataView) => {
     const decoder = new TextDecoder();
@@ -56,6 +65,17 @@ export const PlantProvisioning = () => {
     return res;
   };
   
+  const handleOnClickFinish = () => {
+    const worker = async () => {
+      await BleClient.connect(deviceId);
+      ExecuteCommand(deviceId, { "_type": "Reboot"});
+      await BleClient.disconnect(deviceId);
+    }
+    
+    worker()
+        .catch(err => console.error(err))
+        .finally(() => navigate("/"));
+  }
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -104,7 +124,7 @@ export const PlantProvisioning = () => {
     return (
       <OnboardingStateView header="Successfully added plant" icon={<CheckCircleIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
         <p className="pb-2">Successfully added the plant, please return back to the overview</p>
-        <PrimaryButton href="/" text="Overview" />
+        <PrimaryButton onClick={handleOnClickFinish} text="Overview" />
 
       </OnboardingStateView>
     );
@@ -121,13 +141,12 @@ export const PlantAdd = () => {
     onSubmit: (values: PlantAdd) => {
       queryClient.invalidateQueries("plants");
 
+      const command = { "_type": "Initialize", "settings": values };
+
       const worker = async () => {
         await BleClient.initialize();
         const device = await BleClient.requestDevice({ services: [MYCELIUM_SERVICE] });
-        await BleClient.connect(device.deviceId);
-        const byteArray = new TextEncoder().encode(JSON.stringify(values));
-        await BleClient.write(device.deviceId, MYCELIUM_SERVICE, MYCELIUM_RPC_SERVICE, new DataView(byteArray.buffer));
-        await BleClient.disconnect(device.deviceId);
+        ExecuteCommand(device.deviceId, command);
         return device.deviceId;
       };
 

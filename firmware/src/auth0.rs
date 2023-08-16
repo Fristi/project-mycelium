@@ -44,8 +44,8 @@ pub enum TokenStatus {
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum TokenResult {
-    Full { access_token: String<756>, refresh_token: String<128>, expires_in: i64 },
-    AccessToken { access_token: String<756>, expires_in: i64 },
+    Full { access_token: String<756>, refresh_token: String<128>, expires_in: u64 },
+    AccessToken { access_token: String<756>, expires_in: u64 },
     Error { error: TokenStatus }
 }
 
