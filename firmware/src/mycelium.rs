@@ -66,21 +66,21 @@ impl StationMeasurement {
     }
 }
 
+const BASE_URL: &'static str = option_env!("MYCELIUM_BASE_URL").unwrap_or("http://reindeer-liked-lamprey.ngrok-free.app");
 
 pub fn check_in(client: &mut Client<EspHttpConnection>, access_token: &heapless::String<756>, station_id: &Uuid, measurements: Vec<StationMeasurement>) -> Result<(), MyceliumError> {
     let payload_vec = serde_json::to_vec(&measurements)?;
     let payload = payload_vec.as_slice();
     let payload_length = format!("{}", payload.len());
-    let bearer = format!("bearer {}", access_token);
+    let bearer = format!("Bearer {}", access_token);
     let headers = [
         ("content-type", "application/json"),
         ("authorization", bearer.as_str()),
         ("content-length", &*payload_length),
     ];
-
-    let url = format!("http://reindeer-liked-lamprey.ngrok-free.app/api/stations/{}/checkin", station_id);
-
+    let url = format!("{}/api/stations/{}/checkin", BASE_URL, station_id);
     let mut request = client.put(url.as_str(), &headers)?;
+
     request.write_all(payload)?;
     request.flush()?;
 
@@ -98,16 +98,16 @@ pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &heapl
     let payload_vec = serde_json::to_vec(&insert)?;
     let payload = payload_vec.as_slice();
     let payload_length = format!("{}", payload.len());
-    let bearer = format!("bearer {}", access_token);
+    let bearer = format!("Bearer {}", access_token);
     let headers = [
         ("content-type", "application/json"),
         ("authorization", bearer.as_str()),
         ("content-length", &*payload_length),
     ];
 
-    let url = "http://reindeer-liked-lamprey.ngrok-free.app/api/stations";
+    let url = format!("{}/api/stations", BASE_URL);
+    let mut request = client.post(url.as_str(), &headers)?;
 
-    let mut request = client.post(url, &headers)?;
     request.write_all(payload)?;
     request.flush()?;
 

@@ -48,7 +48,7 @@ pub enum OnboardingState {
 }
 
 #[derive(Debug)]
-pub enum OnboardingError {
+pub enum AppError {
     RwLock,
     Kv(KvStoreError),
     Auth(AuthError),
@@ -58,42 +58,42 @@ pub enum OnboardingError {
     Esp(EspError)
 }
 
-impl From<EspError> for OnboardingError {
+impl From<EspError> for AppError {
     fn from(value: EspError) -> Self {
-        OnboardingError::Esp(value)
+        AppError::Esp(value)
     }
 }
 
-impl From<serde_json::Error> for OnboardingError {
+impl From<serde_json::Error> for AppError {
     fn from(value: serde_json::Error) -> Self {
-        OnboardingError::Json(value)
+        AppError::Json(value)
     }
 }
 
-impl From<MyceliumError> for OnboardingError {
+impl From<MyceliumError> for AppError {
     fn from(value: MyceliumError) -> Self {
-        OnboardingError::Mycelium(value)
+        AppError::Mycelium(value)
     }
 }
 
-impl From<AuthError> for OnboardingError {
+impl From<AuthError> for AppError {
     fn from(value: AuthError) -> Self {
-        OnboardingError::Auth(value)
+        AppError::Auth(value)
     }
 }
 
-impl From<KvStoreError> for OnboardingError {
+impl From<KvStoreError> for AppError {
     fn from(value: KvStoreError) -> Self {
-        OnboardingError::Kv(value)
+        AppError::Kv(value)
     }
 }
 
-impl From<TokenWalletError> for OnboardingError {
-    fn from(value: TokenWalletError) -> Self { OnboardingError::TokenWallet(value) }
+impl From<TokenWalletError> for AppError {
+    fn from(value: TokenWalletError) -> Self { AppError::TokenWallet(value) }
 }
 
-impl From<PoisonError<RwLockWriteGuard<'_, OnboardingState>>> for OnboardingError {
+impl From<PoisonError<RwLockWriteGuard<'_, OnboardingState>>> for AppError {
     fn from(_value: PoisonError<RwLockWriteGuard<'_, OnboardingState>>) -> Self {
-        OnboardingError::RwLock
+        AppError::RwLock
     }
 }

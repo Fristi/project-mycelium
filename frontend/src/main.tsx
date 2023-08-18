@@ -4,7 +4,7 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import App from "./App.tsx";
 import "./styles/global.css";
 import { Capacitor } from "@capacitor/core";
-import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
+import { createHashRouter, createRoutesFromElements, Route, RouterProvider } from "react-router-dom";
 import { AuthContext } from "./AuthContext.tsx";
 import { PlantView } from "./pages/PlantView.tsx";
 import { PlantList } from "./pages/PlantList.tsx";
@@ -18,7 +18,7 @@ const callbackUri = iosOrAndroid ? "co.mycelium.app://dev-plq6-asi.eu.auth0.com/
 
 const cacheLocation = iosOrAndroid ? "memory" : "localstorage";
 
-const router = createBrowserRouter(
+const router = createHashRouter(
   createRoutesFromElements(
     <Route
       path="/"

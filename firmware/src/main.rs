@@ -35,7 +35,7 @@ use thingbuf::mpsc::blocking::channel;
 use crate::auth0::{AuthError, TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
-use crate::onboarding::{OnboardingError, OnboardingCommand, OnboardingState, OnboardingSettings};
+use crate::onboarding::{AppError, OnboardingCommand, OnboardingState, OnboardingSettings};
 use crate::mycelium::{StationInsert, StationMeasurement, WateringSchedule};
 use crate::settings::FlashState;
 use crate::tokens::{TokenWallet, TokenWalletError};
@@ -59,7 +59,7 @@ fn main() -> ! {
     }
 }
 
-fn extract_wallet(client: &mut Client<EspHttpConnection>, flash_state: &FlashState) -> Result<TokenWallet, OnboardingError>  {
+fn extract_wallet(client: &mut Client<EspHttpConnection>, flash_state: &FlashState) -> Result<TokenWallet, AppError>  {
     let wallet = flash_state.get_token_wallet()?;
     let needs_refresh = wallet.needs_refresh()?;
 
@@ -80,7 +80,7 @@ fn extract_wallet(client: &mut Client<EspHttpConnection>, flash_state: &FlashSta
     Ok(wallet)
 }
 
-fn measure(flash_state: &FlashState, wifi: &EspMyceliumWifi) -> Result<(), OnboardingError> {
+fn measure(flash_state: &FlashState, wifi: &EspMyceliumWifi) -> Result<(), AppError> {
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
         use_global_ca_store: true,
         buffer_size_tx: Some(1536),
@@ -94,7 +94,7 @@ fn measure(flash_state: &FlashState, wifi: &EspMyceliumWifi) -> Result<(), Onboa
     let wallet = extract_wallet(client, &flash_state)?;
     let station_id = flash_state.get_station_id()?;
     let now = EspSystemTime{}.now().as_secs();
-    let rfc3339 = timestamp_to_rfc3389(now).ok_or(OnboardingError::TokenWallet(TokenWalletError::TimeSyncTimeout))?;
+    let rfc3339 = timestamp_to_rfc3389(now).ok_or(AppError::TokenWallet(TokenWalletError::TimeSyncTimeout))?;
 
     mycelium::check_in(client, &wallet.access_token, &station_id, vec![StationMeasurement::random(rfc3339)])?;
 
@@ -198,7 +198,7 @@ fn onboarding(flash_state: &FlashState) -> ! {
     }
 }
 
-fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, wifi: &EspMyceliumWifi, settings: &OnboardingSettings) -> Result<(), OnboardingError> {
+fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<OnboardingState>>, wifi: &EspMyceliumWifi, settings: &OnboardingSettings) -> Result<(), AppError> {
     let connection = EspHttpConnection::new(&esp_idf_svc::http::client::Configuration {
         use_global_ca_store: true,
         buffer_size_tx: Some(1536),
@@ -283,7 +283,7 @@ fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<Onboarding
     }
 }
 
-fn get_mac_addr() -> Result<heapless::String<17>, OnboardingError> {
+fn get_mac_addr() -> Result<heapless::String<17>, AppError> {
     let netif = EspNetif::new(NetifStack::Eth)?;
     let mac = netif.get_mac()?;
     let mac_addr_str = heapless::String::from(format!("{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}:{:<02X}", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]).as_str());

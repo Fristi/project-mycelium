@@ -50,11 +50,11 @@ pub enum TokenResult {
 }
 
 
-const DOMAIN: &str = "dev-plq6-asi.eu.auth0.com";
-const CLIENT_ID: &str = "5nYFEjhKlvTPheFxEDIEo97wLx3auwB7";
-const CLIENT_SECRET: &str = "zp-7XzX4rP-ihysBSPoF2fXLfQRAxv2WnJEw-dp4f2LEa_rN8T2gU4fU-OqxWg4I";
-const SCOPE: &str = "offline_access";
-const AUDIENCE: &str = "https://mycelium.co";
+const DOMAIN: &str = option_env!("AUTH0_DOMAIN").unwrap_or("dev-plq6-asi.eu.auth0.com");
+const CLIENT_ID: &str = option_env!("AUTH0_CLIENT_ID").unwrap_or("5nYFEjhKlvTPheFxEDIEo97wLx3auwB7");
+const CLIENT_SECRET: &str = option_env!("AUTH0_CLIENT_SECRET").unwrap_or("zp-7XzX4rP-ihysBSPoF2fXLfQRAxv2WnJEw-dp4f2LEa_rN8T2gU4fU-OqxWg4I");
+const SCOPE: &str = option_env!("AUTH0_SCOPE").unwrap_or("offline_access");
+const AUDIENCE: &str = option_env!("AUTH0_AUDIENCE").unwrap_or("https://mycelium.co");
 
 fn post_form<T, const N : usize>(client: &mut Client<EspHttpConnection>, url: &str, payload: [(&str, &str); N]) -> Result<T, AuthError> where T : DeserializeOwned {
 

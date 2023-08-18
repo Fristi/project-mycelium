@@ -29,7 +29,7 @@ export const PlantEdit = () => {
       validationSchema: toFormikValidationSchema(AttributeSchema),
       onSubmit: (values: AttributeUpdate) => {
         queryClient.invalidateQueries("plants");
-        updateStation(plantId ?? "", values)(auth.token ?? "").then(() => navigate(`/plants/${plantId}`));
+        updateStation(plantId ?? "", values)(auth.token ?? "").then(() => navigate(`#/plants/${plantId}`));
       },
     });
 
@@ -79,7 +79,7 @@ export const PlantEdit = () => {
 
                   <div className="pt-5">
                     <div className="flex justify-end">
-                      <TertiaryButton text="Cancel" href={`/plants/${plantId}`} />
+                      <TertiaryButton text="Cancel" href={`#/plants/${plantId}`} />
                       <PrimaryButton text="Save" />
                     </div>
                   </div>

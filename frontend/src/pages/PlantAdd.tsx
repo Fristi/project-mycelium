@@ -15,12 +15,11 @@ type PlantAdd = z.infer<typeof AddPlantSchema>;
 
 type OnboardingStateAwaitingSettings = { _type: "AwaitingSettings" };
 type OnboardingStateProvisioningWifi = { _type: "ProvisioningWifi" };
-type OnboardingStateSynchronizingTime = { _type: "SynchronizingTime" };
 type OnboardingStateComplete = { _type: "Complete" };
 type OnboardingStateAwaitingAuthorization = { _type: "AwaitingAuthorization", url: string }
 type OnboardingStateFailed = { _type: "Failed", error: string }
 
-type OnboardingState = OnboardingStateAwaitingSettings | OnboardingStateProvisioningWifi | OnboardingStateSynchronizingTime | OnboardingStateComplete | OnboardingStateAwaitingAuthorization | OnboardingStateFailed;
+type OnboardingState = OnboardingStateAwaitingSettings | OnboardingStateProvisioningWifi | OnboardingStateComplete | OnboardingStateAwaitingAuthorization | OnboardingStateFailed;
 
 
 const MYCELIUM_SERVICE = "00467768-6228-2272-4663-277478269000";
@@ -104,12 +103,6 @@ export const PlantProvisioning = () => {
     return (
       <OnboardingStateView header="Connecting to WiFi" icon={<WifiIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
         <p>The device is setting up a internet connection via the WiFi network</p>
-      </OnboardingStateView>
-    );
-  } else if(state._type == "SynchronizingTime") {
-    return (
-      <OnboardingStateView header="Synchronzing time" icon={<ClockIcon className="mx-auto h-12 w-12 text-gray-400"/>}>
-        <p>Synchronizing the time on this device via SNTP</p>
       </OnboardingStateView>
     );
   } else if(state._type == "Failed") {
