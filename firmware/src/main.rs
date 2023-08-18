@@ -228,7 +228,12 @@ fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboar
             Ok(TokenResult::Error { error }) => println!("Auth0 error {:?}", error),
             Ok(TokenResult::AccessToken { .. }) => println!("Skipping!"),
             Ok(TokenResult::Full { access_token, refresh_token, expires_in }) => {
+                let wallet = TokenWallet::new(access_token.clone(), refresh_token, expires_in)?;
+
+                flash_state.set_token_wallet(wallet)?;
+
                 let mac_addr_str = get_mac_addr()?;
+
                 let station_id = mycelium::insert_plant(
                     client,
                     &access_token,
@@ -241,9 +246,6 @@ fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboar
                     }
                 )?;
 
-                let wallet = TokenWallet::new(access_token, refresh_token, expires_in)?;
-
-                flash_state.set_token_wallet(wallet)?;
                 flash_state.set_station_id(station_id)?;
 
                 *state_write.write()? = OnboardingState::Complete;
@@ -263,7 +265,10 @@ fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<Onboarding
     match from_slice::<OnboardingCommand>(&bytes)  {
         Ok(OnboardingCommand::Initialize { settings }) => {
             let result = retry(Fixed::from_millis(10).take(5), || {
-                process_initialize(&flash_state, &state_write, &wifi, &settings)
+                process_initialize(&flash_state, &state_write, &wifi, &settings).map_err(|err| {
+                    println!("Error: {:?}", err);
+                    err
+                })
             });
 
             match result {

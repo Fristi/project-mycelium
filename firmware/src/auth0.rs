@@ -50,12 +50,6 @@ pub enum TokenResult {
 }
 
 
-const DOMAIN: &str = option_env!("AUTH0_DOMAIN").unwrap_or("dev-plq6-asi.eu.auth0.com");
-const CLIENT_ID: &str = option_env!("AUTH0_CLIENT_ID").unwrap_or("5nYFEjhKlvTPheFxEDIEo97wLx3auwB7");
-const CLIENT_SECRET: &str = option_env!("AUTH0_CLIENT_SECRET").unwrap_or("zp-7XzX4rP-ihysBSPoF2fXLfQRAxv2WnJEw-dp4f2LEa_rN8T2gU4fU-OqxWg4I");
-const SCOPE: &str = option_env!("AUTH0_SCOPE").unwrap_or("offline_access");
-const AUDIENCE: &str = option_env!("AUTH0_AUDIENCE").unwrap_or("https://mycelium.co");
-
 fn post_form<T, const N : usize>(client: &mut Client<EspHttpConnection>, url: &str, payload: [(&str, &str); N]) -> Result<T, AuthError> where T : DeserializeOwned {
 
     let payload_str = payload.map(|(k, v)| format!("{}={}", k, v)).join("&");
@@ -83,15 +77,15 @@ fn post_form<T, const N : usize>(client: &mut Client<EspHttpConnection>, url: &s
 }
 
 pub fn refresh_token(client: &mut Client<EspHttpConnection>, refresh_token: &String<128>) -> Result<TokenResult, AuthError> {
-    post_form(client,&format!("https://{}/oauth/token", DOMAIN), [("client_id", CLIENT_ID), ("client_secret", CLIENT_SECRET), ("grant_type", "refresh_token"), ("refresh_token", refresh_token.as_str())])
+    post_form(client, &format!("https://{}/oauth/token", option_env!("AUTH0_DOMAIN").unwrap_or("dev-plq6-asi.eu.auth0.com")), [("client_id", option_env!("AUTH0_CLIENT_ID").unwrap_or("5nYFEjhKlvTPheFxEDIEo97wLx3auwB7")), ("client_secret", option_env!("AUTH0_CLIENT_SECRET").unwrap_or("zp-7XzX4rP-ihysBSPoF2fXLfQRAxv2WnJEw-dp4f2LEa_rN8T2gU4fU-OqxWg4I")), ("grant_type", "refresh_token"), ("refresh_token", refresh_token.as_str())])
 }
 
 pub fn poll_token(client: &mut Client<EspHttpConnection>, device_code: &str) -> Result<TokenResult, AuthError> {
-    post_form(client,&format!("https://{}/oauth/token", DOMAIN), [("client_id", CLIENT_ID), ("device_code", device_code), ("grant_type", "urn:ietf:params:oauth:grant-type:device_code")])
+    post_form(client, &format!("https://{}/oauth/token", option_env!("AUTH0_DOMAIN").unwrap_or("dev-plq6-asi.eu.auth0.com")), [("client_id", option_env!("AUTH0_CLIENT_ID").unwrap_or("5nYFEjhKlvTPheFxEDIEo97wLx3auwB7")), ("device_code", device_code), ("grant_type", "urn:ietf:params:oauth:grant-type:device_code")])
 }
 
 pub fn request_device_code(client: &mut Client<EspHttpConnection>) -> Result<DeviceCodeResponse, AuthError> {
-    post_form(client,&format!("https://{}/oauth/device/code", DOMAIN), [("client_id", CLIENT_ID), ("scope", SCOPE), ("audience", AUDIENCE)])
+    post_form(client, &format!("https://{}/oauth/device/code", option_env!("AUTH0_DOMAIN").unwrap_or("dev-plq6-asi.eu.auth0.com")), [("client_id", option_env!("AUTH0_CLIENT_ID").unwrap_or("5nYFEjhKlvTPheFxEDIEo97wLx3auwB7")), ("scope", option_env!("AUTH0_SCOPE").unwrap_or("offline_access")), ("audience", option_env!("AUTH0_AUDIENCE").unwrap_or("https://mycelium.co"))])
 }
 
 impl From<Utf8Error> for AuthError {
