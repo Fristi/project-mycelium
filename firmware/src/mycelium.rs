@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+
 use std::string::FromUtf8Error;
 
 use embedded_svc::http::client::Client;
@@ -7,7 +7,7 @@ use esp_idf_svc::errors::EspIOError;
 use esp_idf_svc::http::client::EspHttpConnection;
 use rand::Rng;
 use serde::{Serialize};
-use serde::de::DeserializeOwned;
+
 use serde_json::{from_str};
 use uuid::Uuid;
 
@@ -106,8 +106,6 @@ pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &heapl
 
     let base_url = option_env!("MYCELIUM_BASE_URL").unwrap_or("http://reindeer-liked-lamprey.ngrok-free.app");
     let url = format!("{}/api/stations", base_url);
-
-    println!("Inserting plant at: {}", url);
 
     let mut request = client.post(url.as_str(), &headers)?;
 

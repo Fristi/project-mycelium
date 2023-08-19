@@ -1,9 +1,10 @@
-use std::alloc::System;
-use std::time::{Duration, SystemTime};
+
+use std::time::{Duration};
 use esp_idf_svc::sntp::{EspSntp, SyncStatus};
 use esp_idf_svc::systime::EspSystemTime;
 use esp_idf_sys::EspError;
 use heapless::String;
+use log::info;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -16,7 +17,7 @@ pub struct TokenWallet {
 impl TokenWallet {
     pub fn needs_refresh(&self) -> Result<bool, TokenWalletError> {
         let now = get_time()?;
-        println!("now: {}, expires_at: {}", now, self.expires_at);
+        info!("now: {}, expires_at: {}", now, self.expires_at);
         Ok(now > self.expires_at)
     }
 

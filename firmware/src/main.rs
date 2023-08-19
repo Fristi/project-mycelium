@@ -7,7 +7,7 @@ mod mycelium;
 mod settings;
 mod tokens;
 
-use std::sync::{Arc, PoisonError, RwLock, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 
 
@@ -16,25 +16,26 @@ use bluedroid::gatt_server::{Characteristic, GLOBAL_GATT_SERVER, Profile, Servic
 use bluedroid::utilities::{AttributePermissions, BleUuid, CharacteristicProperties};
 use chrono::{NaiveDateTime, SecondsFormat, TimeZone, Utc};
 use embedded_svc::http::client::Client;
-use embedded_svc::http::headers;
-use esp_idf_hal::modem::Modem;
+
+
 use esp_idf_hal::prelude::*;
 use esp_idf_svc::eventloop::EspSystemEventLoop;
 use esp_idf_svc::http::client::EspHttpConnection;
 use esp_idf_svc::netif::{EspNetif, NetifStack};
 use esp_idf_svc::nvs::{EspDefaultNvs, EspDefaultNvsPartition};
-use esp_idf_svc::sntp::{EspSntp, SntpConf, SyncMode, SyncStatus};
+
 use esp_idf_svc::systime::EspSystemTime;
 use esp_idf_svc::wifi::EspWifi;
 use esp_idf_sys::*;
+use log::{error, info, warn};
 use retry::delay::Fixed;
 use retry::retry;
 use serde_json::{from_slice, to_vec};
 use thingbuf::mpsc::blocking::channel;
 
-use crate::auth0::{AuthError, TokenResult};
+use crate::auth0::{TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
-use crate::kv::{KvStore, KvStoreError, NvsKvStore};
+use crate::kv::{NvsKvStore};
 use crate::onboarding::{AppError, OnboardingCommand, OnboardingState, OnboardingSettings};
 use crate::mycelium::{StationInsert, StationMeasurement, WateringSchedule};
 use crate::settings::FlashState;
@@ -67,13 +68,13 @@ fn extract_wallet(client: &mut Client<EspHttpConnection>, flash_state: &FlashSta
         let resp = auth0::refresh_token(client, &wallet.refresh_token)?;
 
         match resp {
-            TokenResult::Error { error } => println!("Token error: {:?}", error),
+            TokenResult::Error { error } => error!("Token error: {:?}", error),
             TokenResult::AccessToken { access_token, expires_in } => {
                 let new_wallet = wallet.update(access_token, expires_in)?;
                 flash_state.set_token_wallet(new_wallet.clone())?;
                 return Ok(new_wallet.clone())
             }
-            _ => println!("Ignoring")
+            _ => info!("Ignoring")
         }
     }
 
@@ -118,7 +119,7 @@ fn operational(flash_state: &FlashState) -> ! {
             flash_state.reset_errors().unwrap();
         },
         Err(err) => {
-            println!("Error: {:?}", err);
+            error!("Error: {:?}", err);
             flash_state.increment_errors().unwrap()
         }
     }
@@ -128,9 +129,9 @@ fn operational(flash_state: &FlashState) -> ! {
     }
 
     unsafe {
-        let second = 1000000000;
+        let second = 1000000;
         let minute = 60 * second;
-        esp_sleep_enable_timer_wakeup(60 * minute);
+        esp_sleep_enable_timer_wakeup(5 * minute);
         esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
         esp_sleep_pd_config(esp_sleep_pd_domain_t_ESP_PD_DOMAIN_XTAL, esp_sleep_pd_option_t_ESP_PD_OPTION_OFF);
         esp_deep_sleep_disable_rom_logging();
@@ -216,7 +217,7 @@ fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboar
 
     let resp = auth0::request_device_code(client)?;
 
-    println!("Got url: {:?}", resp.verification_uri_complete);
+    info!("Got url: {:?}", resp.verification_uri_complete);
 
     *state_write.write()? = OnboardingState::AwaitingAuthorization { url: resp.verification_uri_complete };
 
@@ -225,8 +226,8 @@ fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboar
     while authenticated == false {
 
         match auth0::poll_token(client, &resp.device_code) {
-            Ok(TokenResult::Error { error }) => println!("Auth0 error {:?}", error),
-            Ok(TokenResult::AccessToken { .. }) => println!("Skipping!"),
+            Ok(TokenResult::Error { error }) => warn!("Auth0 error {:?}", error),
+            Ok(TokenResult::AccessToken { .. }) => info!("Skipping!"),
             Ok(TokenResult::Full { access_token, refresh_token, expires_in }) => {
                 let wallet = TokenWallet::new(access_token.clone(), refresh_token, expires_in)?;
 
@@ -251,7 +252,7 @@ fn  process_initialize(flash_state: &FlashState, state_write: &Arc<RwLock<Onboar
                 *state_write.write()? = OnboardingState::Complete;
                 authenticated = true;
             }
-            Err(err) => println!("Auth0 error {:?}", err),
+            Err(err) => warn!("Auth0 error {:?}", err),
         }
 
         std::thread::sleep(Duration::from_secs(5))
@@ -266,7 +267,7 @@ fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<Onboarding
         Ok(OnboardingCommand::Initialize { settings }) => {
             let result = retry(Fixed::from_millis(10).take(5), || {
                 process_initialize(&flash_state, &state_write, &wifi, &settings).map_err(|err| {
-                    println!("Error: {:?}", err);
+                    error!("Error: {:?}", err);
                     err
                 })
             });
@@ -284,7 +285,7 @@ fn process_message(flash_state: &FlashState, state_write: &Arc<RwLock<Onboarding
                 esp_restart();
             }
         },
-        Err(err) => println!("Command not recognized! {:?}", err)
+        Err(err) => error!("Command not recognized! {:?}", err)
     }
 }
 

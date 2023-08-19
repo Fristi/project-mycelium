@@ -1,12 +1,12 @@
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex};
 // based on https://github.com/ferrous-systems/espressif-trainings/blob/1ec7fd78660c58739019b4c146634077a08e3d5e/common/lib/esp32-c3-dkc02-bsc/src/wifi.rs
 // based on https://github.com/ivmarkov/rust-esp32-std-demo/blob/main/src/main.rs
-use embedded_svc::wifi::{AccessPointInfo, AuthMethod, ClientConfiguration, Configuration};
+use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration};
 use esp_idf_svc::eventloop::EspSystemEventLoop;
-use esp_idf_svc::wifi::{BlockingWifi, EspWifi, NonBlocking, WifiDeviceId, WifiDriver};
-use esp_idf_svc::wifi::config::ScanConfig;
+use esp_idf_svc::wifi::{BlockingWifi, EspWifi};
+
 use heapless::String;
-use log::info;
+use log::{debug};
 use esp_idf_sys::EspError;
 use serde::{Deserialize, Serialize};
 
@@ -64,16 +64,16 @@ impl MyceliumWifi for EspMyceliumWifi {
         wifi.start()?;
 
         let enriched_settings = if settings.channel.is_none() && settings.bssid.is_none() {
-            println!("Searching for WiFi network {}", settings.ssid);
+            debug!("Searching for WiFi network {}", settings.ssid);
 
             let ap_infos = wifi.scan()?;
             let ours = ap_infos.into_iter().find(|a| a.ssid.eq(&settings.ssid));
 
             if let Some(ours) = ours {
-                println!("Found configured access point {} on channel {}", settings.ssid, ours.channel);
+                debug!("Found configured access point {} on channel {}", settings.ssid, ours.channel);
                 Ok(MyceliumWifiSettings { channel: Some(ours.channel), bssid: Some(ours.bssid), ..settings })
             } else {
-                println!("Configured access point {} not found during scanning, will go with unknown channel", settings.ssid);
+                debug!("Configured access point {} not found during scanning, will go with unknown channel", settings.ssid);
                 Ok(settings)
             }
         } else {
@@ -90,22 +90,15 @@ impl MyceliumWifi for EspMyceliumWifi {
             ..Default::default()
         });
 
-        println!("Setting WiFi settings");
-
         wifi.set_configuration(&conf)?;
 
-        println!("Connecting to WiFi");
+        wifi.connect()?;
 
-        wifi.connect().map_err(|err| {
-            println!("Error while connecting to WiFi: {:?}", err);
-            err
-        })?;
-
-        println!("Connected to WiFi, waiting netif to be up");
+        debug!("Connected to WiFi, waiting netif to be up");
 
         wifi.wait_netif_up()?;
 
-        println!("WiFi netif is up");
+        debug!("WiFi netif is up");
 
         Ok(enriched_settings.clone())
     }

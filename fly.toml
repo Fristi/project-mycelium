@@ -4,7 +4,7 @@
 #
 
 app = "mycelium"
-primary_region = "ams"
+primary_region = "fra"
 
 [http_service]
   internal_port = 8080
@@ -15,9 +15,9 @@ primary_region = "ams"
   processes = ["app"]
 
 [env]
-  PG_HOST = "little-flower-9130.internal"
-  PG_USER = "postgres"
-  PG_DB = "postgres"
+  PG_HOST = "ep-super-limit-61125340.eu-central-1.aws.neon.tech"
+  PG_USER = "av3ng3r"
+  PG_DB = "neondb"
   S3_HOST = ""
   S3_ACCESS_KEY = ""
   SENTRY_BACKEND_DSN = "https://c80d0d99dc464a3b899c5d06b0a06cf3@o4505515472977920.ingest.sentry.io/4505515475009536"
