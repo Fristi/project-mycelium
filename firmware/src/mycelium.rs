@@ -107,8 +107,6 @@ pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &heapl
     let base_url = option_env!("MYCELIUM_BASE_URL").unwrap_or("http://reindeer-liked-lamprey.ngrok-free.app");
     let url = format!("{}/api/stations", base_url);
 
-    println!("Inserting plant at: {}", url);
-
     let mut request = client.post(url.as_str(), &headers)?;
 
     request.write_all(payload)?;
