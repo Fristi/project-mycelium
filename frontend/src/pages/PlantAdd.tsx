@@ -9,7 +9,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import TextArea from "../components/TextArea";
 import { BleClient } from "@capacitor-community/bluetooth-le";
 import { useEffect, useState } from "react";
-import { CheckCircleIcon, ClockIcon, ExclamationCircleIcon, PauseCircleIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ExclamationCircleIcon, PauseCircleIcon, UserIcon, WifiIcon } from "@heroicons/react/24/outline";
 
 type PlantAdd = z.infer<typeof AddPlantSchema>;
 
