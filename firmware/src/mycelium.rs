@@ -5,6 +5,7 @@ use embedded_svc::http::client::Client;
 use embedded_svc::io::Write;
 use esp_idf_svc::errors::EspIOError;
 use esp_idf_svc::http::client::EspHttpConnection;
+use rand::Rng;
 use serde::{Serialize};
 use serde::de::DeserializeOwned;
 use serde_json::{from_str};
@@ -37,21 +38,79 @@ pub struct StationInsert {
     pub watering_schedule: WateringSchedule
 }
 
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct StationMeasurement {
+    on: String,
+    battery_voltage: f64,
+    temperature: f64,
+    humidity: f64,
+    lux: f64,
+    soil_pf: f64,
+    tank_pf: f64
+}
+
+impl StationMeasurement {
+    pub fn random(on: String) -> StationMeasurement {
+        let mut rng = rand::thread_rng();
+
+        StationMeasurement {
+            on,
+            battery_voltage: rng.gen_range(2.2f64..3.3f64),
+            temperature: rng.gen_range(10f64..45f64),
+            humidity: rng.gen_range(5f64..100f64),
+            lux: rng.gen_range(0f64..300_000f64),
+            soil_pf: rng.gen_range(0f64..2000f64),
+            tank_pf: rng.gen_range(0f64..2000f64),
+        }
+    }
+}
+
+pub fn check_in(client: &mut Client<EspHttpConnection>, access_token: &heapless::String<756>, station_id: &Uuid, measurements: Vec<StationMeasurement>) -> Result<(), MyceliumError> {
+    let payload_vec = serde_json::to_vec(&measurements)?;
+    let payload = payload_vec.as_slice();
+    let payload_length = format!("{}", payload.len());
+    let bearer = format!("Bearer {}", access_token);
+    let headers = [
+        ("content-type", "application/json"),
+        ("authorization", bearer.as_str()),
+        ("content-length", &*payload_length),
+    ];
+    let base_url = option_env!("MYCELIUM_BASE_URL").unwrap_or("http://reindeer-liked-lamprey.ngrok-free.app");
+    let url = format!("{}/api/stations/{}/checkin", base_url, station_id);
+    let mut request = client.put(url.as_str(), &headers)?;
+
+    request.write_all(payload)?;
+    request.flush()?;
+
+    let response = &mut request.submit()?;
+
+    if response.status() == 200 {
+        Ok(())
+    } else {
+        Err(MyceliumError::UnexpectedResponse { status: response.status() })
+    }
+}
+
 pub fn insert_plant(client: &mut Client<EspHttpConnection>, access_token: &heapless::String<756>, insert: &StationInsert) -> Result<Uuid, MyceliumError> {
 
     let payload_vec = serde_json::to_vec(&insert)?;
     let payload = payload_vec.as_slice();
     let payload_length = format!("{}", payload.len());
-    let bearer = format!("bearer {}", access_token);
+    let bearer = format!("Bearer {}", access_token);
     let headers = [
         ("content-type", "application/json"),
         ("authorization", bearer.as_str()),
         ("content-length", &*payload_length),
     ];
 
-    let url = "http://reindeer-liked-lamprey.ngrok-free.app/api/stations";
+    let base_url = option_env!("MYCELIUM_BASE_URL").unwrap_or("http://reindeer-liked-lamprey.ngrok-free.app");
+    let url = format!("{}/api/stations", base_url);
 
-    let mut request = client.post(url, &headers)?;
+    println!("Inserting plant at: {}", url);
+
+    let mut request = client.post(url.as_str(), &headers)?;
+
     request.write_all(payload)?;
     request.flush()?;
 

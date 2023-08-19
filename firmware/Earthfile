@@ -54,6 +54,7 @@ build:
   COPY +deps/cargo_home $CARGO_HOME
   COPY --dir src .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
+  ENV MYCELIUM_BASE_URL https://mycelium.fly.dev/
   RUN cargo +esp build --target xtensa-esp32-espidf --release
   SAVE ARTIFACT target/xtensa-esp32-espidf/* AS LOCAL artifacts/
 
@@ -73,5 +74,5 @@ flash:
   RUN which espflash 2>/dev/null || echo "[ERROR] espflash not found in path, try install it via: cargo install espflash"
   
   # Flash the firmware
-  RUN espflash $SERIAL_PORT $BUILD_BINARY
+  RUN cargo espflash flash $SERIAL_PORT $BUILD_BINARY
 

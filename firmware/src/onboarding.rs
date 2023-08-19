@@ -12,6 +12,7 @@ use thingbuf::recycling::DefaultRecycle;
 use crate::auth0::{AuthError, TokenResult};
 use crate::kv::{KvStore, KvStoreError, NvsKvStore};
 use crate::mycelium::MyceliumError;
+use crate::tokens::TokenWalletError;
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
 
 #[derive(Deserialize, Clone, Default, Debug)]
@@ -29,59 +30,70 @@ impl OnboardingSettings {
     }
 }
 
+#[derive(Deserialize, Clone, Debug)]
+#[serde(tag = "_type")]
+pub enum OnboardingCommand {
+    Initialize { settings: OnboardingSettings },
+    Reboot
+}
+
 #[derive(Serialize, Debug, Clone)]
 #[serde(tag = "_type")]
 pub enum OnboardingState {
     AwaitingSettings,
     ProvisioningWifi,
-    SynchronizingTime,
     Failed { error: String<256> },
     AwaitingAuthorization { url: String<255> },
     Complete
 }
 
 #[derive(Debug)]
-pub enum OnboardingError {
+pub enum AppError {
     RwLock,
     Kv(KvStoreError),
     Auth(AuthError),
+    TokenWallet(TokenWalletError),
     Mycelium(MyceliumError),
     Json(serde_json::Error),
     Esp(EspError)
 }
 
-impl From<EspError> for OnboardingError {
+impl From<EspError> for AppError {
     fn from(value: EspError) -> Self {
-        OnboardingError::Esp(value)
+        AppError::Esp(value)
     }
 }
 
-impl From<serde_json::Error> for OnboardingError {
+impl From<serde_json::Error> for AppError {
     fn from(value: serde_json::Error) -> Self {
-        OnboardingError::Json(value)
+        AppError::Json(value)
     }
 }
 
-impl From<MyceliumError> for OnboardingError {
+impl From<MyceliumError> for AppError {
     fn from(value: MyceliumError) -> Self {
-        OnboardingError::Mycelium(value)
+        AppError::Mycelium(value)
     }
 }
 
-impl From<AuthError> for OnboardingError {
+impl From<AuthError> for AppError {
     fn from(value: AuthError) -> Self {
-        OnboardingError::Auth(value)
+        AppError::Auth(value)
     }
 }
 
-impl From<KvStoreError> for OnboardingError {
+impl From<KvStoreError> for AppError {
     fn from(value: KvStoreError) -> Self {
-        OnboardingError::Kv(value)
+        AppError::Kv(value)
     }
 }
 
-impl From<PoisonError<RwLockWriteGuard<'_, OnboardingState>>> for OnboardingError {
+impl From<TokenWalletError> for AppError {
+    fn from(value: TokenWalletError) -> Self { AppError::TokenWallet(value) }
+}
+
+impl From<PoisonError<RwLockWriteGuard<'_, OnboardingState>>> for AppError {
     fn from(_value: PoisonError<RwLockWriteGuard<'_, OnboardingState>>) -> Self {
-        OnboardingError::RwLock
+        AppError::RwLock
     }
 }

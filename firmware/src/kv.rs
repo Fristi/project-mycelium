@@ -10,11 +10,13 @@ use serde_json::{from_str};
 pub enum KvStoreError {
     Esp(esp_idf_sys::EspError),
     Json(serde_json::Error),
-    StringConversionError
+    StringConversionError,
+    SettingNotFound(String)
 }
 
 pub trait KvStore : Send + Sync + Clone {
-    fn get<T : DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError>;
+    fn get_opt<T : DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError>;
+    fn get<T : DeserializeOwned>(&self, key: &str) -> Result<T, KvStoreError>;
     fn set<T : Serialize>(&self, key: &str, value: T) -> Result<(), KvStoreError>;
     fn contains(&self, key: &str) -> Result<bool, KvStoreError>;
     fn remove(&self, key: &str) -> Result<(), KvStoreError>;
@@ -35,7 +37,7 @@ impl Clone for NvsKvStore {
 }
 
 impl KvStore for NvsKvStore {
-    fn get<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError> {
+    fn get_opt<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, KvStoreError> {
         let buf: &mut [u8; 2048] = &mut [0u8;2048];
         let nvs = self.nvs.lock().unwrap();
 
@@ -46,6 +48,12 @@ impl KvStore for NvsKvStore {
         } else {
             Ok(None)
         }
+    }
+
+    fn get<T : DeserializeOwned>(&self, key: &str) -> Result<T, KvStoreError> {
+        let opt = self.get_opt::<T>(key)?;
+        let result = opt.ok_or(KvStoreError::SettingNotFound(key.to_string()))?;
+        Ok(result)
     }
 
     fn set<T: Serialize>(&self, key: &str, value: T) -> Result<(), KvStoreError> {
