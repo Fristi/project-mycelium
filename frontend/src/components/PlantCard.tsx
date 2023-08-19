@@ -19,7 +19,7 @@ export default (props: Props) => {
       <div className="max-w-xl">
         <div className="group relative">
           <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
-            <a href={`#/plants/${station.id}`}>
+            <a href={`/#/plants/${station.id}`}>
               <span className="absolute inset-0" />
               {station.name}
             </a>

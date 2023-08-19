@@ -34,7 +34,7 @@ object DoobieStationMeasurementRepository extends StationMeasurementRepository[C
   ): ConnectionIO[List[StationMeasurement]] = {
 
     val timeBucket = period match {
-      case MeasurementPeriod.LastTwentyFourHours => fr"time_bucket('1 hour', occurred_on)"
+      case MeasurementPeriod.LastTwentyFourHours => fr"time_bucket('15 minutes', occurred_on)"
       case MeasurementPeriod.LastSevenDays       => fr"time_bucket('1 day', occurred_on)"
       case MeasurementPeriod.LastTwoWeeks        => fr"time_bucket('1 day', occurred_on)"
       case MeasurementPeriod.LastMonth           => fr"time_bucket('1 day', occurred_on)"

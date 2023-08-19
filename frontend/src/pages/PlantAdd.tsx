@@ -145,7 +145,7 @@ export const PlantAdd = () => {
 
       worker()
         .catch(err => console.error(err))
-        .then(id => navigate(`/plant-add/${id}`))
+        .then(id => navigate(`/#/plant-add/${id}`))
     },
   });
 

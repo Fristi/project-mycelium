@@ -29,7 +29,7 @@ export const PlantEdit = () => {
       validationSchema: toFormikValidationSchema(AttributeSchema),
       onSubmit: (values: AttributeUpdate) => {
         queryClient.invalidateQueries("plants");
-        updateStation(plantId ?? "", values)(auth.token ?? "").then(() => navigate(`#/plants/${plantId}`));
+        updateStation(plantId ?? "", values)(auth.token ?? "").then(() => navigate(`/#/plants/${plantId}`));
       },
     });
 
