@@ -1,5 +1,5 @@
-use std::alloc::System;
-use std::time::{Duration, SystemTime};
+
+use std::time::{Duration};
 use esp_idf_svc::sntp::{EspSntp, SyncStatus};
 use esp_idf_svc::systime::EspSystemTime;
 use esp_idf_sys::EspError;

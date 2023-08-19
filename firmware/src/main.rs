@@ -7,7 +7,7 @@ mod mycelium;
 mod settings;
 mod tokens;
 
-use std::sync::{Arc, PoisonError, RwLock, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 use esp_idf_sys as _; // If using the `binstart` feature of `esp-idf-sys`, always keep this module imported
 
 
@@ -16,14 +16,14 @@ use bluedroid::gatt_server::{Characteristic, GLOBAL_GATT_SERVER, Profile, Servic
 use bluedroid::utilities::{AttributePermissions, BleUuid, CharacteristicProperties};
 use chrono::{NaiveDateTime, SecondsFormat, TimeZone, Utc};
 use embedded_svc::http::client::Client;
-use embedded_svc::http::headers;
-use esp_idf_hal::modem::Modem;
+
+
 use esp_idf_hal::prelude::*;
 use esp_idf_svc::eventloop::EspSystemEventLoop;
 use esp_idf_svc::http::client::EspHttpConnection;
 use esp_idf_svc::netif::{EspNetif, NetifStack};
 use esp_idf_svc::nvs::{EspDefaultNvs, EspDefaultNvsPartition};
-use esp_idf_svc::sntp::{EspSntp, SntpConf, SyncMode, SyncStatus};
+
 use esp_idf_svc::systime::EspSystemTime;
 use esp_idf_svc::wifi::EspWifi;
 use esp_idf_sys::*;
@@ -33,9 +33,9 @@ use retry::retry;
 use serde_json::{from_slice, to_vec};
 use thingbuf::mpsc::blocking::channel;
 
-use crate::auth0::{AuthError, TokenResult};
+use crate::auth0::{TokenResult};
 use crate::wifi::{EspMyceliumWifi, MyceliumWifi, MyceliumWifiSettings};
-use crate::kv::{KvStore, KvStoreError, NvsKvStore};
+use crate::kv::{NvsKvStore};
 use crate::onboarding::{AppError, OnboardingCommand, OnboardingState, OnboardingSettings};
 use crate::mycelium::{StationInsert, StationMeasurement, WateringSchedule};
 use crate::settings::FlashState;

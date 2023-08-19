@@ -1,12 +1,12 @@
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex};
 // based on https://github.com/ferrous-systems/espressif-trainings/blob/1ec7fd78660c58739019b4c146634077a08e3d5e/common/lib/esp32-c3-dkc02-bsc/src/wifi.rs
 // based on https://github.com/ivmarkov/rust-esp32-std-demo/blob/main/src/main.rs
-use embedded_svc::wifi::{AccessPointInfo, AuthMethod, ClientConfiguration, Configuration};
+use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration};
 use esp_idf_svc::eventloop::EspSystemEventLoop;
-use esp_idf_svc::wifi::{BlockingWifi, EspWifi, NonBlocking, WifiDeviceId, WifiDriver};
-use esp_idf_svc::wifi::config::ScanConfig;
+use esp_idf_svc::wifi::{BlockingWifi, EspWifi};
+
 use heapless::String;
-use log::{debug, info};
+use log::{debug};
 use esp_idf_sys::EspError;
 use serde::{Deserialize, Serialize};
 
