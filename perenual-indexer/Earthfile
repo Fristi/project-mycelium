@@ -16,5 +16,5 @@ docker:
     FROM eclipse-temurin:17.0.7_7-jre
     COPY +build/bin build/bin
     ARG EARTHLY_GIT_HASH
-    ENTRYPOINT ["java","-cp","build/bin/pernenual-indexer-assembly-1.0.jar","co.mycelium.Main"]
-    SAVE IMAGE --push ghcr.io/fristi/project-mycelium-pernenual-indexer:$EARTHLY_GIT_HASH
+    ENTRYPOINT ["java","-cp","build/bin/perenual-indexer-assembly-1.0.jar","co.mycelium.Main"]
+    SAVE IMAGE --push ghcr.io/fristi/project-mycelium-perenual-indexer:$EARTHLY_GIT_HASH
