@@ -18,19 +18,3 @@ services:
   #     interval: 30s
   #     timeout: 20s
   #     retries: 3
-
-  db:
-    image: timescale/timescaledb:2.11.1-pg15
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: mycelium
-      POSTGRES_USER: mycelium
-      POSTGRES_PASSWORD: mycelium
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mycelium"]
-      start_period: 5s
-      interval: 1s
-      timeout: 5s
-      retries: 30
