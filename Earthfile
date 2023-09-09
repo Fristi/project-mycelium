@@ -4,3 +4,4 @@ build:
     BUILD ./firmware/+build
     BUILD ./frontend/+build
     BUILD ./backend/+build
+    BUILD ./perenual-indexer/+build

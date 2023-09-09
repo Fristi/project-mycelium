@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "build:android": "tsc && vite build && npx cap sync && npx cap open android",
     "run:android": "tsc && vite build && npx cap sync && npx cap run android",
-    "preprov": "earthly ../backend/+dev && docker compose -f ../docker-compose.yml -f ../docker-compose.dev.yml up",
-    "stage": "earthly ../backend/+stage && docker compose -f ../docker-compose.yml -f ../docker-compose.dev.yml up",
+    "preprov": "earthly ../backend/+dev && docker compose -f ../docker-compose.dev.yml up",
+    "stage": "earthly ../backend/+stage && docker compose -f ../docker-compose.dev.yml up",
     "prettier": "npx prettier . --write",
     "prettier-check": "npx prettier . --check"
   },
