@@ -77,11 +77,12 @@ final case class SttpPerenualClient(backend: SttpBackend[Task, Any], apiKey: Str
 }
 
 object SttpPerenualClient {
-  val live: ZLayer[PerenualRateLimitter, Throwable, SttpPerenualClient] = ZLayer.scoped {
+  val live: ZLayer[PerenualRateLimitter with PerenualConfig, Throwable, SttpPerenualClient] = ZLayer.scoped {
     for {
+      cfg <- ZIO.service[PerenualConfig]
       rateLimitter <- ZIO.service[PerenualRateLimitter]
       backend <- HttpClientZioBackend.scoped()
-    } yield SttpPerenualClient(backend, "sk-jlA164f5fd04ad2632069", rateLimitter)
+    } yield SttpPerenualClient(backend, cfg.key, rateLimitter)
   }
 }
 

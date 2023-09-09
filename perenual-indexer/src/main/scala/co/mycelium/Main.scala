@@ -9,16 +9,14 @@ object Main extends ZIOAppDefault {
     val insert =
       PerenualClient.species.run(plantInsert)
 
-
-    insert.repeat(Schedule.duration(1.day)).provide(
+    insert.repeat(Schedule.fixed(1.day)).provide(
       DoobiePerenualRateLimitter.live(300),
+      PerenualConfig.live,
       SttpPerenualClient.live,
-      Transactors.layer,
+      Transactors.live,
       DoobiePlantDetailRepository.live,
-      DbConfig.layer
+      DbConfig.live
     )
-
-    ZIO.succeed(println("Hi")).repeat(Schedule.fixed(2.second))
   }
 
   val plantInsert: ZSink[PlantDetailRepository, Throwable, PlantDetail, Nothing, Unit] =

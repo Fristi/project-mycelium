@@ -22,7 +22,7 @@ object Transactors {
     HikariTransactor.fromHikariConfig(config).toScopedZIO
   }
 
-  val layer: ZLayer[DbConfig, Throwable, Transactor[Task]] =
+  val live: ZLayer[DbConfig, Throwable, Transactor[Task]] =
     ZLayer.scoped {
       for {
         config <- ZIO.service[DbConfig]

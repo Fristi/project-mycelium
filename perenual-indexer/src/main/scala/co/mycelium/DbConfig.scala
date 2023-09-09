@@ -14,7 +14,7 @@ final case class DbConfig(
 
 object DbConfig {
 
-  private val dbConfig: Config[DbConfig] =
+  private val config: Config[DbConfig] =
     (
       string("PG_HOST").withDefault("localhost") zip
       int("PG_PORT").withDefault(5432) zip
@@ -23,6 +23,14 @@ object DbConfig {
       string("PG_DB").withDefault("mycelium")
     ).map { case (host, port, user, pass, db) => DbConfig(host, port, user, pass, db)}
 
-  val layer: ZLayer[Any, Error, DbConfig] = ZLayer(ConfigProvider.fromEnv().load(dbConfig))
+  val live: ZLayer[Any, Error, DbConfig] = ZLayer(ConfigProvider.fromEnv().load(config))
 }
 
+final case class PerenualConfig(key: String)
+
+object PerenualConfig {
+  private val config: Config[PerenualConfig] =
+      string("PERENUAL_KEY").map { case (key) => PerenualConfig(key) }
+
+  val live: ZLayer[Any, Error, PerenualConfig] = ZLayer(ConfigProvider.fromEnv().load(config))
+}
