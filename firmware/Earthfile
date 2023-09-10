@@ -5,7 +5,9 @@ VERSION 0.7
 FROM debian:stable-slim
 
 linux-setup:
-  RUN apt update && apt-get install -y git curl gcc wget flex bison gperf python3 python3-pip python3-virtualenv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 unzip libtinfo5
+  RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked --mount=target=/var/cache/apt,type=cache,sharing=locked rm -f /etc/apt/apt.conf.d/docker-clean
+  RUN apt-get update
+  RUN apt-get install -y --no-install-recommends git curl gcc wget flex bison gperf python3 python3-pip python3-virtualenv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 unzip libtinfo5
 
 esp-rust-setup:
   FROM +linux-setup
