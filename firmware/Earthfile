@@ -14,7 +14,7 @@ esp-rust-setup:
   RUN ./install-rust-toolchain.sh --llvm-version esp-15.0.0-20221014 --build-target esp32 --extra-crates "ldproxy"
   SAVE ARTIFACT /root/.espressif/* ./espressif
 
-deps:
+planner:
   FROM +esp-rust-setup
   WORKDIR build  
   COPY +esp-rust-setup/espressif /root/.espressif
@@ -44,17 +44,16 @@ deps:
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
   RUN mkdir src
   RUN touch src/lib.rs
-  RUN cargo +esp build --target xtensa-esp32-espidf --release
-  SAVE ARTIFACT target
-  SAVE ARTIFACT $CARGO_HOME cargo_home
+  RUN cargo install cargo-chef --locked
+  RUN cargo chef prepare --recipe-path recipe.json
+  SAVE ARTIFACT recipe.json
 
 build:
-  FROM +deps
-  COPY +deps/target target
-  COPY +deps/cargo_home $CARGO_HOME
+  FROM +deps/recipe.json
   COPY --dir src .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
   ENV MYCELIUM_BASE_URL https://mycelium.fly.dev/
+  RUN cargo chef cook --release --recipe-path recipe.json
   RUN cargo +esp build --target xtensa-esp32-espidf --release
   SAVE ARTIFACT target/xtensa-esp32-espidf/* AS LOCAL artifacts/
 
