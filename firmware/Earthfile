@@ -9,7 +9,7 @@ linux-setup:
 
 esp-rust-setup:
   FROM +linux-setup
-  GIT CLONE --branch build/1.70.0.1 https://github.com/esp-rs/rust-build.git rust-build
+  GIT CLONE --branch build/1.70.0.1 https://github.com/Fristi/rust-build.git rust-build
   WORKDIR rust-build
   RUN ./install-rust-toolchain.sh --llvm-version esp-15.0.0-20221014 --build-target esp32 --extra-crates "ldproxy"
   SAVE ARTIFACT /root/.espressif/* ./espressif
@@ -20,8 +20,6 @@ deps:
   COPY +esp-rust-setup/espressif /root/.espressif
 
   ARG TARGETARCH
-
-  RUN echo $TARGETARCH
 
   IF [ "$TARGETARCH" = amd64 ]
       ARG ARCH_TRIPLE=x86_64-unknown-linux-gnu
@@ -36,24 +34,21 @@ deps:
   ENV PATH="/root/.cargo/bin:/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-$ARCH_TRIPLE/bin/:$PATH"
   ENV LIBCLANG_PATH="/root/.espressif/tools/xtensa-esp32-elf-clang/esp-15.0.0-20221014-$ARCH_TRIPLE/esp-clang/lib"
 
-  RUN echo $LIBCLANG_PATH
-  RUN ls $LIBCLANG_PATH
-  RUN echo $PATH
-
   COPY --dir .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
   RUN mkdir src
   RUN touch src/lib.rs
-  RUN cargo install cargo-chef --locked
-  RUN cargo chef prepare --recipe-path recipe.json
-  SAVE ARTIFACT recipe.json
+  RUN cargo +esp build --target xtensa-esp32-espidf --release
+  SAVE ARTIFACT target
+  SAVE ARTIFACT $CARGO_HOME cargo_home
 
 build:
-  COPY +deps/recipe.json recipe.json
+  FROM +deps
+  COPY +deps/target target
+  COPY +deps/cargo_home $CARGO_HOME
   COPY --dir src .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
   ENV MYCELIUM_BASE_URL https://mycelium.fly.dev/
-  RUN cargo chef cook --release --recipe-path recipe.json
   RUN cargo +esp build --target xtensa-esp32-espidf --release
   SAVE ARTIFACT target/xtensa-esp32-espidf/* AS LOCAL artifacts/
 
