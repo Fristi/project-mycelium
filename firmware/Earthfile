@@ -14,7 +14,7 @@ esp-rust-setup:
   RUN ./install-rust-toolchain.sh --llvm-version esp-15.0.0-20221014 --build-target esp32 --extra-crates "ldproxy"
   SAVE ARTIFACT /root/.espressif/* ./espressif
 
-planner:
+deps:
   FROM +esp-rust-setup
   WORKDIR build  
   COPY +esp-rust-setup/espressif /root/.espressif
@@ -49,7 +49,7 @@ planner:
   SAVE ARTIFACT recipe.json
 
 build:
-  FROM +deps/recipe.json
+  COPY +deps/recipe.json recipe.json
   COPY --dir src .cargo ./
   COPY Cargo.toml Cargo.lock build.rs sdkconfig.defaults ./
   ENV MYCELIUM_BASE_URL https://mycelium.fly.dev/
