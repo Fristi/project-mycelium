@@ -97,18 +97,18 @@ case class PlantDetail(
   other_name: Array[String],
   family: Option[String],
   origin: Array[String],
-  `type`: String,
+  `type`: Option[String],
   dimension: String,
   cycle: String,
   propagation: Array[String],
   watering: String,
   watering_period: Option[String],
   sunlight: Array[String],
-  pruning_month: Array[String],
+  pruning_month: Option[Array[String]],
   seeds: Int,
   maintenance: Option[String],
   soil: Array[String],
-  growth_rate: String,
+  growth_rate: Option[String],
   drought_tolerant: Boolean,
   salt_tolerant: Boolean,
   thorny: Boolean,
@@ -135,7 +135,7 @@ case class PlantDetail(
   medicinal: Boolean,
   poisonous_to_humans: Int,
   poisonous_to_pets: Int,
-  description: String
+  description: Option[String]
 )
 
 
