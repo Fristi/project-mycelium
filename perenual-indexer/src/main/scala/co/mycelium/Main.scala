@@ -9,7 +9,7 @@ object Main extends ZIOAppDefault {
     val insert =
       PerenualClient.species.run(plantInsert)
 
-    insert.repeat(Schedule.fixed(1.day)).provide(
+    insert.catchAllCause(ZIO.logErrorCause).repeat(Schedule.fixed(1.day)).provide(
       DoobiePerenualRateLimitter.live(300),
       PerenualConfig.live,
       SttpPerenualClient.live,
