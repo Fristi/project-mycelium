@@ -40,7 +40,7 @@ final case class DoobiePerenualRateLimitter(transactor: Transactor[Task], limit:
   override def increaseRequestsToday(f: LatestIndexState => LatestIndexState): Task[Unit] =
     getState_.flatMap(state => DoobiePernualRateLimitterQueries.upsert(f(state))).transact(transactor).unit
 
-  override def hasQuotaLeft: Task[Boolean] = getState.map(_.requests < limit)
+  override def hasQuotaLeft: Task[Boolean] = getState.map(_.getRequestsToday < limit)
 
   override def getState: Task[LatestIndexState] = getState_.transact(transactor)
 }

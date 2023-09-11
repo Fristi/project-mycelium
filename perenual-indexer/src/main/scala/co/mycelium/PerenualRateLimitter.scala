@@ -2,7 +2,7 @@ package co.mycelium
 
 import zio.{Ref, Task, ZLayer}
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.time.{Instant, LocalDate, ZoneId}
 
 trait PerenualRateLimitter {
   def increaseRequestsToday(f: LatestIndexState => LatestIndexState): Task[Unit]
@@ -33,7 +33,7 @@ object InMemoryPerenualRateLimitter {
 
 final case class LatestIndexState(page: Int, id: Option[Int], lastUpdate: Option[Instant], requests: Int) {
 
-  private def getRequestsToday = if(lastUpdate.exists(isSameDay)) requests else 0
+  def getRequestsToday: Int = if(lastUpdate.exists(isSameDay)) requests else 0
 
   private def isSameDay(instant: Instant) =
     LocalDate.ofInstant(instant, ZoneId.of("Europe/Amsterdam")) isEqual LocalDate.now
