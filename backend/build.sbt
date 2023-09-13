@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "org.typelevel"                 %% "cats-tagless-macros"   % "0.15.0",
   "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.6.1",
   "org.http4s"                    %% "http4s-dsl"            % "0.23.23",
-  "org.http4s"                    %% "http4s-ember-server"   % "0.23.18",
+  "org.http4s"                    %% "http4s-ember-server"   % "0.23.23",
   "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.6.4",
   "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.6.4",
   "org.flywaydb"                   % "flyway-core"           % "9.22.1",
