@@ -11,4 +11,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: scalacenter/sbt-dependency-submission@v2
         with:
-            working-directory: ./backend
+          working-directory: ./backend
+      - uses: scalacenter/sbt-dependency-submission@v2
+        with:
+          working-directory: ./perenual-indexer

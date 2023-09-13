@@ -9,4 +9,7 @@ jobs:
       - uses: scalacenter/sbt-dependency-submission@v2
         with:
           working-directory: ./backend
+      - uses: scalacenter/sbt-dependency-submission@v2
+        with:
+          working-directory: ./perenual-indexer
       - uses: actions/dependency-review-action@v3
