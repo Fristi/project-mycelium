@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.http4s"                    %% "http4s-dsl"            % "0.23.23",
   "org.http4s"                    %% "http4s-ember-server"   % "0.23.23",
   "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.7.4",
-  "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.7.3",
+  "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.7.4",
   "org.flywaydb"                   % "flyway-core"           % "9.22.1",
   "io.circe"                      %% "circe-generic-extras"  % "0.14.3",
   "ch.qos.logback"                 % "logback-classic"       % "1.4.11",
