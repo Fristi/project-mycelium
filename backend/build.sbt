@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "com.github.fs2-blobstore"      %% "s3"                    % "0.9.12",
   "is.cir"                        %% "ciris"                 % "3.3.0",
   "com.github.cb372"              %% "cats-retry"            % "3.1.0",
-  "io.sentry"                      % "sentry-logback"        % "6.31.0",
+  "io.sentry"                      % "sentry-logback"        % "6.32.0",
   "org.postgresql"                 % "postgresql"            % "42.6.0",
   "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.8.2",
   "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"    % "0.7.1"
