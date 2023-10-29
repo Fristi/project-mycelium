@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.6.1",
   "org.http4s"                    %% "http4s-dsl"            % "0.23.23",
   "org.http4s"                    %% "http4s-ember-server"   % "0.23.23",
-  "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.8.2",
+  "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.8.3",
   "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.8.2",
   "org.flywaydb"                   % "flyway-core"           % "9.22.3",
   "io.circe"                      %% "circe-generic-extras"  % "0.14.3",
