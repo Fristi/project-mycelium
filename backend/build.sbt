@@ -14,8 +14,8 @@ libraryDependencies ++= Seq(
   "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.6.1",
   "org.http4s"                    %% "http4s-dsl"            % "0.23.23",
   "org.http4s"                    %% "http4s-ember-server"   % "0.23.23",
-  "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.8.5",
-  "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.8.5",
+  "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.9.0",
+  "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.9.0",
   "org.flywaydb"                   % "flyway-core"           % "10.0.0",
   "io.circe"                      %% "circe-generic-extras"  % "0.14.3",
   "ch.qos.logback"                 % "logback-classic"       % "1.4.11",
@@ -25,9 +25,9 @@ libraryDependencies ++= Seq(
   "com.github.fs2-blobstore"      %% "s3"                    % "0.9.12",
   "is.cir"                        %% "ciris"                 % "3.4.0",
   "com.github.cb372"              %% "cats-retry"            % "3.1.0",
-  "io.sentry"                      % "sentry-logback"        % "6.33.0",
+  "io.sentry"                      % "sentry-logback"        % "6.33.1",
   "org.postgresql"                 % "postgresql"            % "42.6.0",
-  "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.8.5",
+  "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.9.0",
   "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"    % "0.7.1"
 )
 
