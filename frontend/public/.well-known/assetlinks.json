@@ -1,0 +1,5 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target" : { "namespace": "android_app", "package_name": "co.mycelium.app",
+                 "sha256_cert_fingerprints": ["2C:94:B0:F7:11:A1:98:C1:72:DB:B6:73:0F:86:B2:0C:CD:A7:BA:97:C7:C7:62:02:62:3F:91:0C:B7:37:D7:E1"] }
+  }]

@@ -1,5 +1,7 @@
 import { useAuth0, User } from "@auth0/auth0-react";
 import React, { useEffect, createContext, useContext } from "react";
+import { Browser } from '@capacitor/browser';
+
 
 type Props = {
   children: React.ReactNode;
@@ -18,6 +20,20 @@ export const AuthContext: React.FC<Props> = ({ children }) => {
   const { user, isAuthenticated, isLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
   const [token, setToken] = React.useState<string | null>(null);
 
+  console.log(`Initializing auth context ${isAuthenticated}`, user);
+
+  const login = async () => {
+    await loginWithRedirect({
+      async openUrl(url) {
+         // Redirect using Capacitor's Browser plugin
+        await Browser.open({
+          url,
+          windowName: "_self"
+        });
+      }
+    });
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -35,7 +51,7 @@ export const AuthContext: React.FC<Props> = ({ children }) => {
     return (
       <p>
         You should{" "}
-        <a href="#" onClick={() => loginWithRedirect()}>
+        <a href="#" onClick={login}>
           login
         </a>
         !
