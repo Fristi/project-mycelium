@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir"   %% "tapir-json-circe"      % "1.9.0",
   "org.flywaydb"                   % "flyway-core"           % "10.0.1",
   "io.circe"                      %% "circe-generic-extras"  % "0.14.3",
-  "ch.qos.logback"                 % "logback-classic"       % "1.4.11",
+  "ch.qos.logback"                 % "logback-classic"       % "1.4.14",
   "com.github.jwt-scala"          %% "jwt-core"              % "9.4.4",
   "com.github.jwt-scala"          %% "jwt-circe"             % "9.4.4",
   "com.auth0"                      % "jwks-rsa"              % "0.22.1",
