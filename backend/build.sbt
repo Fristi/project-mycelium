@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "com.github.jwt-scala"          %% "jwt-circe"             % "9.4.6",
   "com.auth0"                      % "jwks-rsa"              % "0.22.1",
   "com.github.fs2-blobstore"      %% "s3"                    % "0.9.12",
-  "is.cir"                        %% "ciris"                 % "3.4.0",
+  "is.cir"                        %% "ciris"                 % "3.5.0",
   "com.github.cb372"              %% "cats-retry"            % "3.1.0",
   "io.sentry"                      % "sentry-logback"        % "6.34.0",
   "org.postgresql"                 % "postgresql"            % "42.6.0",
