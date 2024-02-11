@@ -3,7 +3,7 @@ name         := "backend"
 organization := "co.mycelium"
 version      := "1.0"
 
-val doobieVersion = "1.0.0-RC4"
+val doobieVersion = "1.0.0-RC5"
 
 libraryDependencies ++= Seq(
   "org.tpolecat"                  %% "doobie-core"           % doobieVersion,
