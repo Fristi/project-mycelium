@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "io.circe"                      %% "circe-generic-extras"  % "0.14.3",
   "ch.qos.logback"                 % "logback-classic"       % "1.4.14",
   "com.github.jwt-scala"          %% "jwt-core"              % "9.4.4",
-  "com.github.jwt-scala"          %% "jwt-circe"             % "9.4.4",
+  "com.github.jwt-scala"          %% "jwt-circe"             % "9.4.6",
   "com.auth0"                      % "jwks-rsa"              % "0.22.1",
   "com.github.fs2-blobstore"      %% "s3"                    % "0.9.12",
   "is.cir"                        %% "ciris"                 % "3.4.0",
