@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "io.sentry"                      % "sentry-logback"        % "6.33.1",
   "org.postgresql"                 % "postgresql"            % "42.6.0",
   "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.9.0",
-  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"    % "0.7.1"
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"    % "0.7.4"
 )
 
 Compile / scalacOptions ++= {
