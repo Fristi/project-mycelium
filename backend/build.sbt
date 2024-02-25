@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "com.github.cb372"              %% "cats-retry"            % "3.1.0",
   "io.sentry"                      % "sentry-logback"        % "6.34.0",
   "org.postgresql"                 % "postgresql"            % "42.7.1",
-  "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.9.9",
+  "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.9.10",
   "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml"    % "0.7.4"
 )
 
