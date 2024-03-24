@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "com.auth0"                      % "jwks-rsa"              % "0.22.1",
   "com.github.fs2-blobstore"      %% "s3"                    % "0.9.12",
   "is.cir"                        %% "ciris"                 % "3.5.0",
-  "com.github.cb372"              %% "cats-retry"            % "3.1.0",
+  "com.github.cb372"              %% "cats-retry"            % "3.1.3",
   "io.sentry"                      % "sentry-logback"        % "7.4.0",
   "org.postgresql"                 % "postgresql"            % "42.7.2",
   "com.softwaremill.sttp.tapir"   %% "tapir-openapi-docs"    % "1.9.10",
