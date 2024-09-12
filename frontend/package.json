@@ -18,7 +18,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.2.0",
     "@capacitor-community/bluetooth-le": "^3.0.0",
-    "@capacitor/android": "^5.0.4",
+    "@capacitor/android": "^5.4.0",
     "@capacitor/app": "^5.0.6",
     "@capacitor/browser": "^5.0.6",
     "@capacitor/core": "^5.0.4",

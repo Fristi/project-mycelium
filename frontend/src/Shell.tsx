@@ -1,6 +1,7 @@
 import { Disclosure } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Outlet } from "react-router-dom";
+import { AuthContext } from "./AuthContext.tsx";
 
 const user = {
   name: "Tom Cook",
@@ -20,7 +21,7 @@ function classNames<T>(...classes: T[]) {
 
 export default function Shell() {
   return (
-    <>
+    <AuthContext>
       <div className="min-h-full">
         <Disclosure as="nav" className="bg-stone-600">
           {({ open }) => (
@@ -163,6 +164,6 @@ export default function Shell() {
           </div>
         </main>
       </div>
-    </>
+    </AuthContext>
   );
 }
