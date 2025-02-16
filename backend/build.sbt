@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"                  %% "doobie-hikari"         % doobieVersion,
   "org.tpolecat"                  %% "doobie-postgres-circe" % doobieVersion,
   "org.typelevel"                 %% "cats-tagless-macros"   % "0.15.0",
-  "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.7.0",
+  "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.8.2",
   "org.http4s"                    %% "http4s-dsl"            % "0.23.25",
   "org.http4s"                    %% "http4s-ember-server"   % "0.23.25",
   "com.softwaremill.sttp.tapir"   %% "tapir-http4s-server"   % "1.9.10",
