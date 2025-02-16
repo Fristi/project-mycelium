@@ -1,4 +1,4 @@
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.16"
 name         := "perenual-indexer"
 organization := "co.mycelium"
 version      := "1.0"
