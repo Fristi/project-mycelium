@@ -1,8 +1,8 @@
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.16"
 name         := "perenual-indexer"
 organization := "co.mycelium"
 version      := "1.0"
-val doobieVersion = "1.0.0-RC5"
+val doobieVersion = "1.0.0-RC7"
 
 lazy val root = (project in file("."))
   .settings(
@@ -13,8 +13,8 @@ lazy val root = (project in file("."))
       "org.tpolecat"                  %% "doobie-core"      % doobieVersion,
       "org.tpolecat"                  %% "doobie-postgres"  % doobieVersion,
       "org.tpolecat"                  %% "doobie-hikari"    % doobieVersion,
-      "ch.qos.logback"                 % "logback-classic"  % "1.5.0",
-      "com.github.cb372"              %% "cats-retry"       % "3.1.0",
+      "ch.qos.logback"                 % "logback-classic"  % "1.5.16",
+      "com.github.cb372"              %% "cats-retry"       % "3.1.3",
       "com.softwaremill.sttp.client3" %% "zio"              % "3.9.0",
       "com.softwaremill.sttp.client3" %% "zio-json"         % "3.9.0"
     )
