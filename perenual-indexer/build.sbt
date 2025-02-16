@@ -14,7 +14,7 @@ lazy val root = (project in file("."))
       "org.tpolecat"                  %% "doobie-postgres"  % doobieVersion,
       "org.tpolecat"                  %% "doobie-hikari"    % doobieVersion,
       "ch.qos.logback"                 % "logback-classic"  % "1.5.16",
-      "com.github.cb372"              %% "cats-retry"       % "3.1.0",
+      "com.github.cb372"              %% "cats-retry"       % "3.1.3",
       "com.softwaremill.sttp.client3" %% "zio"              % "3.9.0",
       "com.softwaremill.sttp.client3" %% "zio-json"         % "3.9.0"
     )
