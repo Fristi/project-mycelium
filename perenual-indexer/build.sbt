@@ -2,7 +2,7 @@ scalaVersion := "2.13.16"
 name         := "perenual-indexer"
 organization := "co.mycelium"
 version      := "1.0"
-val doobieVersion = "1.0.0-RC5"
+val doobieVersion = "1.0.0-RC7"
 
 lazy val root = (project in file("."))
   .settings(
