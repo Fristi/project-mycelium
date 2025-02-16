@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"                  %% "doobie-postgres"       % doobieVersion,
   "org.tpolecat"                  %% "doobie-hikari"         % doobieVersion,
   "org.tpolecat"                  %% "doobie-postgres-circe" % doobieVersion,
-  "org.typelevel"                 %% "cats-tagless-macros"   % "0.15.0",
+  "org.typelevel"                 %% "cats-tagless-macros"   % "0.16.3",
   "com.github.alonsodomin.cron4s" %% "cron4s-core"           % "0.8.2",
   "org.http4s"                    %% "http4s-dsl"            % "0.23.30",
   "org.http4s"                    %% "http4s-ember-server"   % "0.23.30",
